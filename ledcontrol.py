@@ -1,75 +1,196 @@
 import Adafruit_PCA9685
 import time
-x = 409
-red = 2
-green = 1
-blue = 0
-blinkspeed = .1
-blinkrange = 20
-sirenrange = 20
+
 pwm = Adafruit_PCA9685.PCA9685()
 pwm.set_pwm_freq(100)
-def turnon(color):
-  pwm.set_pwm(color, 0, 4095)
-def turnoff(color):
-  pwm.set_pwm(color, 0, 0)
-def fadeon(color):
-  for i in range(0, x):
-    pwm.set_pwm(color, 0, 10*i)
-    time.sleep(.001)
-def fadeoff(color):
-  for i in range(0, x):
-    pwm.set_pwm(color, 0, 4095-10*i)
-    time.sleep(.001)
-  pwm.set_pwm(color, 0, 0)
-def fadeonoff(color):
-  for i in range(0, x):
-    pwm.set_pwm(color, 0, 10*i)
-    time.sleep(.001)
-  for i in range(0, x):
-    pwm.set_pwm(color, 0, 4095-10*i)
-    time.sleep(.001)
-  pwm.set_pwm(color, 0, 0)
-def blink(color):
-  for i in range(blinkrange):
-    pwm.set_pwm(color, 0, 4000)
-    time.sleep(blinkspeed)
-    pwm.set_pwm(color, 0, 0)
-    time.sleep(blinkspeed)
-def siren():
-  for i in range(sirenrange):
-    turnon(red)
-    time.sleep(.1)
-    turnoff(red)
-    turnon(blue)
-    time.sleep(.1)
-    turnoff(blue)
-def shift(fromcolor, tocolor):
-  for i in range(0, x):
-    pwm.set_pwm(fromcolor, 0, 4095-10*i)
-    pwm.set_pwm(tocolor, 0, 10*i)
-    time.sleep(.001)
-  pwm.set_pwm(fromcolor, 0, 0)
-turnon(red)
-time.sleep(2)
-turnoff(red)
-time.sleep(.5)
-fadeon(green)
-time.sleep(2)
-fadeoff(green)
-time.sleep(.5)
-fadeonoff(blue)
-blink(red)
-blink(green)
-blink(blue)
-siren()
-time.sleep(.5)
-fadeon(red)
-shift(red, green)
-time.sleep(2)
-shift(green,blue)
-time.sleep(2)
-shift(blue, red)
-time.sleep(2)
-fadeoff(red)
-print "Done"
+
+class Color():
+
+  def __init__(self, red, green, blue):
+    self.redpwm = int(red*16.059)   #Convert 8 bits to 12 bits 
+    self.greenpwm = int(green*16.059)   
+    self.bluepwm = int(blue*16.059)
+
+red = Color(255, 0, 0)
+green = Color(0, 255, 0)
+blue = Color(0, 0, 255)
+orange = Color(255, 255, 0)
+turquoise = Color(0, 255, 255)
+purple = Color(255, 0, 255)
+grey = Color(55, 55, 55)
+
+class LED():
+
+  def __init__(self, redpin, greenpin, bluepin):
+    self.redpin = redpin
+    self.greenpin = greenpin
+    self.bluepin = bluepin
+
+  def turnon(self, color):
+    pwm.set_pwm(self.redpin, 0, color.redpwm)
+    pwm.set_pwm(self.greenpin, 0, color.greenpwm)
+    pwm.set_pwm(self.bluepin, 0, color.bluepwm)
+
+  def turnoff(self):
+    pwm.set_pwm(self.redpin, 0, 0)
+    pwm.set_pwm(self.greenpin, 0, 0)
+    pwm.set_pwm(self.bluepin, 0, 0)
+
+  def fadeon(self, color):
+    i = 0
+    limit = max(color.redpwm, color.greenpwm, color.bluepwm)
+    while 10*i <= limit:
+      if 10*i <= color.redpwm:
+        pwm.set_pwm(self.redpin, 0, 10*i)
+      else:
+        pwm.set_pwm(self.redpin, 0, color.redpwm) 
+      if 10*i <= color.greenpwm:
+        pwm.set_pwm(self.greenpin, 0, 10*i)
+      else:
+        pwm.set_pwm(self.greenpin, 0, color.greenpwm) 
+      time.sleep(.001)
+      if 10*i <= color.bluepwm:
+        pwm.set_pwm(self.bluepin, 0, 10*i)
+      else:
+        pwm.set_pwm(self.bluepin, 0, color.bluepwm) 
+      time.sleep(.001)
+      i += 1
+
+  def fadeoff(self, color):
+    i = 0
+    limit = max(color.redpwm, color.greenpwm, color.bluepwm)
+    while 10*i <= limit:
+      if 10*i <= color.redpwm:
+        pwm.set_pwm(self.redpin, 0, color.redpwm - 10*i)
+      else:
+        pwm.set_pwm(self.redpin, 0, 0) 
+      if 10*i <= color.greenpwm:
+        pwm.set_pwm(self.greenpin, 0, color.greenpwm - 10*i)
+      else:
+        pwm.set_pwm(self.greenpin, 0, 0) 
+      time.sleep(.001)
+      if 10*i <= color.bluepwm:
+        pwm.set_pwm(self.bluepin, 0, color.bluepwm - 10*i)
+      else:
+        pwm.set_pwm(self.bluepin, 0, 0) 
+      time.sleep(.001)
+      i += 1
+    pwm.set_pwm(self.redpin, 0, 0)
+    pwm.set_pwm(self.greenpin, 0, 0)
+    pwm.set_pwm(self.bluepin, 0, 0)  
+
+  def fadeonoff(self, color):
+    i = 0
+    limit = max(color.redpwm, color.greenpwm, color.bluepwm)
+    while 10*i <= limit:
+      if 10*i <= color.redpwm:
+        pwm.set_pwm(self.redpin, 0, 10*i)
+      else: pwm.set_pwm(self.redpin, 0, color.redpwm)
+      if 10*i <= color.greenpwm:
+        pwm.set_pwm(self.greenpin, 0, 10*i)
+      else: pwm.set_pwm(self.greenpin, 0, color.greenpwm)
+      if 10*i <= color.bluepwm:
+        pwm.set_pwm(self.bluepin, 0, 10*i)
+      else: pwm.set_pwm(self.bluepin, 0, color.bluepwm)
+      i += 1
+    i = 0
+    while 10*i <= limit:
+      if 10*i <= color.redpwm:
+        pwm.set_pwm(self.redpin, 0, color.redpwm - 10*i)
+      else: pwm.set_pwm(self.redpin, 0, 0)
+      if 10*i <= color.greenpwm:
+        pwm.set_pwm(self.greenpin, 0, color.greenpwm - 10*i)
+      else: pwm.set_pwm(self.greenpin, 0, 0)
+      if 10*i <= color.bluepwm:
+        pwm.set_pwm(self.bluepin, 0, color.bluepwm - 10*i)
+      else: pwm.set_pwm(self.bluepin, 0, 0)
+      i += 1
+    pwm.set_pwm(self.redpin, 0, 0)
+    pwm.set_pwm(self.greenpin, 0, 0)
+    pwm.set_pwm(self.bluepin, 0, 0)
+
+  def blink(self, color):
+    blinkspeed = .05
+    for x in range(10):
+      self.turnon(color)
+      time.sleep(blinkspeed)
+      self.turnoff()
+      time.sleep(blinkspeed)
+
+  def siren(self):
+    for i in range(10):
+      self.turnon(red)
+      time.sleep(.1)
+      self.turnoff()
+      self.turnon(blue)
+      time.sleep(.1)
+      self.turnoff()
+
+  def shift(self, fromcolor, tocolor):
+    maxdiff = max(abs(fromcolor.redpwm - tocolor.redpwm), abs(fromcolor.greenpwm - tocolor.greenpwm), abs(fromcolor.bluepwm - tocolor.bluepwm))
+    i = 0
+    while 10*i <= maxdiff:
+      if fromcolor.redpwm < tocolor.redpwm:
+        pwm.set_pwm(self.redpin, 0, fromcolor.redpwm + 10*i)
+      elif fromcolor.redpwm > tocolor.redpwm:
+        pwm.set_pwm(self.redpin, 0, fromcolor.redpwm - 10*i)
+      if fromcolor.greenpwm < tocolor.greenpwm:
+        pwm.set_pwm(self.greenpin, 0, fromcolor.greenpwm + 10*i)
+      elif fromcolor.greenpwm > tocolor.greenpwm:
+        pwm.set_pwm(self.greenpin, 0, fromcolor.greenpwm - 10*i)
+      if fromcolor.bluepwm < tocolor.bluepwm:
+        pwm.set_pwm(self.bluepin, 0, fromcolor.bluepwm + 10*i)
+      elif fromcolor.bluepwm > tocolor.bluepwm:
+        pwm.set_pwm(self.bluepin, 0, fromcolor.bluepwm - 10*i)
+      i += 1
+    pwm.set_pwm(self.redpin, 0, tocolor.redpwm)
+    pwm.set_pwm(self.greenpin, 0, tocolor.greenpwm)
+    pwm.set_pwm(self.bluepin, 0, tocolor.bluepwm)
+
+  def slowshift(self, fromcolor, tocolor):
+    maxdiff = max(abs(fromcolor.redpwm - tocolor.redpwm), abs(fromcolor.greenpwm - tocolor.greenpwm), abs(fromcolor.bluepwm - tocolor.bluepwm))
+    i = 0
+    while i <= maxdiff:
+      if fromcolor.redpwm < tocolor.redpwm:
+        pwm.set_pwm(self.redpin, 0, fromcolor.redpwm + i)
+      elif fromcolor.redpwm > tocolor.redpwm:
+        pwm.set_pwm(self.redpin, 0, fromcolor.redpwm - i)
+      if fromcolor.greenpwm < tocolor.greenpwm:
+        pwm.set_pwm(self.greenpin, 0, fromcolor.greenpwm + i)
+      elif fromcolor.greenpwm > tocolor.greenpwm:
+        pwm.set_pwm(self.greenpin, 0, fromcolor.greenpwm - i)
+      if fromcolor.bluepwm < tocolor.bluepwm:
+        pwm.set_pwm(self.bluepin, 0, fromcolor.bluepwm + i)
+      elif fromcolor.bluepwm > tocolor.bluepwm:
+        pwm.set_pwm(self.bluepin, 0, fromcolor.bluepwm - i)
+      i += 1
+    pwm.set_pwm(self.redpin, 0, tocolor.redpwm)
+    pwm.set_pwm(self.greenpin, 0, tocolor.greenpwm)
+    pwm.set_pwm(self.bluepin, 0, tocolor.bluepwm)
+
+  def test(self):
+    self.turnon(red)
+    time.sleep(.5)
+    self.turnoff()
+    time.sleep(.33)
+    self.fadeon(green)
+    time.sleep(.5)
+    self.fadeoff(green)
+    time.sleep(.33)
+    self.fadeonoff(blue)
+    time.sleep(.33)
+    self.siren()
+    time.sleep(.33)
+    self.blink(orange)
+    time.sleep(.33)
+    self.fadeon(turquoise)
+    self.shift(turquoise, purple)
+    self.shift(purple, green)
+    self.slowshift(green, purple)
+    self.fadeoff(purple)
+
+if __name__=="__main__":
+  led1 = LED(2,1,0)
+  led1.test()
+  print "Yeah"
+
