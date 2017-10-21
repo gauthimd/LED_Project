@@ -11,17 +11,19 @@ class Color():
     self.greenpwm = int(green*16.059)   
     self.bluepwm = int(blue*16.059)
 
-red = Color(255, 0, 0)
-green = Color(0, 255, 0)
-blue = Color(0, 0, 255)
-orange = Color(255, 255, 0)
-turquoise = Color(0, 255, 255)
-purple = Color(255, 0, 255)
-grey = Color(55, 55, 55)
+red = Color(255,0,0)
+green = Color(0,255,0)
+blue = Color(0,0,255)
+orange = Color(255,255,0)
+turquoise = Color(0,255,255)
+purple = Color(255,0,255)
+gray = Color(100,100,100)
 
 class LED():
 
   def __init__(self, redpin, greenpin, bluepin):
+    pwm = Adafruit_PCA9685.PCA9685()
+    pwm.set_pwm_freq(100)
     self.redpin = redpin
     self.greenpin = greenpin
     self.bluepin = bluepin
@@ -128,20 +130,32 @@ class LED():
 
   def shift(self, fromcolor, tocolor):
     maxdiff = max(abs(fromcolor.redpwm - tocolor.redpwm), abs(fromcolor.greenpwm - tocolor.greenpwm), abs(fromcolor.bluepwm - tocolor.bluepwm))
+    reddiff = abs(fromcolor.redpwm - tocolor.redpwm)
+    greendiff = abs(fromcolor.greenpwm - tocolor.greenpwm)
+    bluediff = abs(fromcolor.bluepwm - tocolor.bluepwm)
     i = 0
     while 10*i <= maxdiff:
-      if fromcolor.redpwm < tocolor.redpwm:
-        pwm.set_pwm(self.redpin, 0, fromcolor.redpwm + 10*i)
-      elif fromcolor.redpwm > tocolor.redpwm:
-        pwm.set_pwm(self.redpin, 0, fromcolor.redpwm - 10*i)
-      if fromcolor.greenpwm < tocolor.greenpwm:
-        pwm.set_pwm(self.greenpin, 0, fromcolor.greenpwm + 10*i)
-      elif fromcolor.greenpwm > tocolor.greenpwm:
-        pwm.set_pwm(self.greenpin, 0, fromcolor.greenpwm - 10*i)
-      if fromcolor.bluepwm < tocolor.bluepwm:
-        pwm.set_pwm(self.bluepin, 0, fromcolor.bluepwm + 10*i)
-      elif fromcolor.bluepwm > tocolor.bluepwm:
-        pwm.set_pwm(self.bluepin, 0, fromcolor.bluepwm - 10*i)
+      if 10*i <= reddiff:
+        if fromcolor.redpwm < tocolor.redpwm:
+          pwm.set_pwm(self.redpin, 0, fromcolor.redpwm + 10*i)
+        elif fromcolor.redpwm > tocolor.redpwm:
+          pwm.set_pwm(self.redpin, 0, fromcolor.redpwm - 10*i)
+      else:
+        pwm.set_pwm(self.redpin, 0, tocolor.redpwm)
+      if 10*i <= greendiff:
+        if fromcolor.greenpwm < tocolor.greenpwm:
+          pwm.set_pwm(self.greenpin, 0, fromcolor.greenpwm + 10*i)
+        elif fromcolor.greenpwm > tocolor.greenpwm:
+          pwm.set_pwm(self.greenpin, 0, fromcolor.greenpwm - 10*i)
+      else:
+        pwm.set_pwm(self.greenpin, 0, tocolor.greenpwm)
+      if 10*i <= bluediff:
+        if fromcolor.bluepwm < tocolor.bluepwm:
+          pwm.set_pwm(self.bluepin, 0, fromcolor.bluepwm + 10*i)
+        elif fromcolor.bluepwm > tocolor.bluepwm:
+          pwm.set_pwm(self.bluepin, 0, fromcolor.bluepwm - 10*i)
+      else:
+        pwm.set_pwm(self.bluepin, 0, tocolor.bluepwm)
       i += 1
     pwm.set_pwm(self.redpin, 0, tocolor.redpwm)
     pwm.set_pwm(self.greenpin, 0, tocolor.greenpwm)
@@ -149,45 +163,45 @@ class LED():
 
   def slowshift(self, fromcolor, tocolor):
     maxdiff = max(abs(fromcolor.redpwm - tocolor.redpwm), abs(fromcolor.greenpwm - tocolor.greenpwm), abs(fromcolor.bluepwm - tocolor.bluepwm))
+    reddiff = abs(fromcolor.redpwm - tocolor.redpwm)
+    greendiff = abs(fromcolor.greenpwm - tocolor.greenpwm)
+    bluediff = abs(fromcolor.bluepwm - tocolor.bluepwm)
     i = 0
     while i <= maxdiff:
-      if fromcolor.redpwm < tocolor.redpwm:
-        pwm.set_pwm(self.redpin, 0, fromcolor.redpwm + i)
-      elif fromcolor.redpwm > tocolor.redpwm:
-        pwm.set_pwm(self.redpin, 0, fromcolor.redpwm - i)
-      if fromcolor.greenpwm < tocolor.greenpwm:
-        pwm.set_pwm(self.greenpin, 0, fromcolor.greenpwm + i)
-      elif fromcolor.greenpwm > tocolor.greenpwm:
-        pwm.set_pwm(self.greenpin, 0, fromcolor.greenpwm - i)
-      if fromcolor.bluepwm < tocolor.bluepwm:
-        pwm.set_pwm(self.bluepin, 0, fromcolor.bluepwm + i)
-      elif fromcolor.bluepwm > tocolor.bluepwm:
-        pwm.set_pwm(self.bluepin, 0, fromcolor.bluepwm - i)
+      if i <= reddiff:
+        if fromcolor.redpwm < tocolor.redpwm:
+          pwm.set_pwm(self.redpin, 0, fromcolor.redpwm + i)
+        elif fromcolor.redpwm > tocolor.redpwm:
+          pwm.set_pwm(self.redpin, 0, fromcolor.redpwm - i)
+      else:
+        pwm.set_pwm(self.redpin, 0, tocolor.redpwm)
+      if i <= greendiff:
+        if fromcolor.greenpwm < tocolor.greenpwm:
+          pwm.set_pwm(self.greenpin, 0, fromcolor.greenpwm + i)
+        elif fromcolor.greenpwm > tocolor.greenpwm:
+          pwm.set_pwm(self.greenpin, 0, fromcolor.greenpwm - i)
+      else:
+        pwm.set_pwm(self.greenpin, 0, tocolor.greenpwm)
+      if i <= bluediff:
+        if fromcolor.bluepwm < tocolor.bluepwm:
+          pwm.set_pwm(self.bluepin, 0, fromcolor.bluepwm + i)
+        elif fromcolor.bluepwm > tocolor.bluepwm:
+          pwm.set_pwm(self.bluepin, 0, fromcolor.bluepwm - i)
+      else:
+        pwm.set_pwm(self.bluepin, 0, tocolor.bluepwm)
       i += 1
     pwm.set_pwm(self.redpin, 0, tocolor.redpwm)
     pwm.set_pwm(self.greenpin, 0, tocolor.greenpwm)
     pwm.set_pwm(self.bluepin, 0, tocolor.bluepwm)
 
   def test(self):
-    self.turnon(red)
-    time.sleep(.5)
-    self.turnoff()
-    time.sleep(.33)
-    self.fadeon(green)
-    time.sleep(.5)
-    self.fadeoff(green)
-    time.sleep(.33)
-    self.fadeonoff(blue)
-    time.sleep(.33)
-    self.siren()
-    time.sleep(.33)
-    self.blink(orange)
-    time.sleep(.33)
-    self.fadeon(turquoise)
-    self.shift(turquoise, purple)
-    self.shift(purple, green)
-    self.slowshift(green, purple)
-    self.fadeoff(purple)
+    self.fadeon(red)
+    self.slowshift(red, green)
+    self.slowshift(green, gray)
+    self.slowshift(gray, turquoise)
+    self.slowshift(turquoise, purple)
+    self.slowshift(purple, orange)
+    self.fadeoff(orange)
 
 if __name__=="__main__":
   led1 = LED(2,1,0)
