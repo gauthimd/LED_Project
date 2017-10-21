@@ -1,5 +1,5 @@
 import Adafruit_PCA9685
-import time
+import time, random
 
 pwm = Adafruit_PCA9685.PCA9685()
 pwm.set_pwm_freq(100)
@@ -39,7 +39,6 @@ class LED():
     pwm.set_pwm(self.bluepin, 0, 0)
 
   def fadeon(self, color):
-    i = 0
     limit = max(color.redpwm, color.greenpwm, color.bluepwm)
     for i in range(limit/10):
       if 10*i <= color.redpwm:
@@ -56,13 +55,11 @@ class LED():
       else:
         pwm.set_pwm(self.bluepin, 0, color.bluepwm) 
       time.sleep(.001)
-      i += 1
     pwm.set_pwm(self.redpin, 0, color.redpwm)
     pwm.set_pwm(self.greenpin, 0, color.greenpwm)
     pwm.set_pwm(self.bluepin, 0, color.bluepwm)   
 
   def fadeoff(self, color):
-    i = 0
     limit = max(color.redpwm, color.greenpwm, color.bluepwm)
     for i in range(limit/10):
       if 10*i <= color.redpwm:
@@ -79,13 +76,11 @@ class LED():
       else:
         pwm.set_pwm(self.bluepin, 0, 0) 
       time.sleep(.001)
-      i += 1
     pwm.set_pwm(self.redpin, 0, 0)
     pwm.set_pwm(self.greenpin, 0, 0)
     pwm.set_pwm(self.bluepin, 0, 0)  
 
   def fadeonoff(self, color):
-    i = 0
     limit = max(color.redpwm, color.greenpwm, color.bluepwm)
     for i in range(limit/10):
       if 10*i <= color.redpwm:
@@ -97,8 +92,6 @@ class LED():
       if 10*i <= color.bluepwm:
         pwm.set_pwm(self.bluepin, 0, 10*i)
       else: pwm.set_pwm(self.bluepin, 0, color.bluepwm)
-      i += 1
-    i = 0
     for i in range(limit/10):
       if 10*i <= color.redpwm:
         pwm.set_pwm(self.redpin, 0, color.redpwm - 10*i)
@@ -109,7 +102,6 @@ class LED():
       if 10*i <= color.bluepwm:
         pwm.set_pwm(self.bluepin, 0, color.bluepwm - 10*i)
       else: pwm.set_pwm(self.bluepin, 0, 0)
-      i += 1
     pwm.set_pwm(self.redpin, 0, 0)
     pwm.set_pwm(self.greenpin, 0, 0)
     pwm.set_pwm(self.bluepin, 0, 0)
@@ -136,7 +128,6 @@ class LED():
     reddiff = abs(fromcolor.redpwm - tocolor.redpwm)
     greendiff = abs(fromcolor.greenpwm - tocolor.greenpwm)
     bluediff = abs(fromcolor.bluepwm - tocolor.bluepwm)
-    i = 0
     for i in range(maxdiff/10):
       if 10*i <= reddiff:
         if fromcolor.redpwm < tocolor.redpwm:
@@ -159,7 +150,6 @@ class LED():
           pwm.set_pwm(self.bluepin, 0, fromcolor.bluepwm - 10*i)
       else:
         pwm.set_pwm(self.bluepin, 0, tocolor.bluepwm)
-      i += 1
     pwm.set_pwm(self.redpin, 0, tocolor.redpwm)
     pwm.set_pwm(self.greenpin, 0, tocolor.greenpwm)
     pwm.set_pwm(self.bluepin, 0, tocolor.bluepwm)
@@ -169,7 +159,6 @@ class LED():
     reddiff = abs(fromcolor.redpwm - tocolor.redpwm)
     greendiff = abs(fromcolor.greenpwm - tocolor.greenpwm)
     bluediff = abs(fromcolor.bluepwm - tocolor.bluepwm)
-    i = 0
     for i in range(maxdiff):
       if i <= reddiff:
         if fromcolor.redpwm < tocolor.redpwm:
@@ -192,25 +181,52 @@ class LED():
           pwm.set_pwm(self.bluepin, 0, fromcolor.bluepwm - i)
       else:
         pwm.set_pwm(self.bluepin, 0, tocolor.bluepwm)
-      i += 1
     pwm.set_pwm(self.redpin, 0, tocolor.redpwm)
     pwm.set_pwm(self.greenpin, 0, tocolor.greenpwm)
     pwm.set_pwm(self.bluepin, 0, tocolor.bluepwm)
 
+  def randcolor(self):
+    x = Color(random.randint(0,255),random.randint(0,255),random.randint(0,255))
+    return x
+
+  def randcoolcolor(self):
+    x = Color(0,random.randint(0,255),random.randint(0,255))
+    return x
+
+  def randwarmcolor(self):
+    x = Color(random.randint(0,255),random.randint(0,255),0)
+    return x
+
+  def randomshifter(self):
+    i = self.randcolor()
+    j = self.randcolor()
+    self.fadeon(i)
+    time.sleep(2)
+    for x in range(5):
+      self.shift(i,j)
+      time.sleep(2)
+      i = j
+      j = self.randcolor()
+    self.fadeoff(i)
+
   def test(self):
     self.turnon(red)
     time.sleep(1)
-    self.shift(red,green)
+    self.turnoff()
+    self.fadeon(green)
     time.sleep(1)
-    self.shift(green, gray)
+    self.fadeoff(green)
+    time.sleep(1)
+    self.siren()
+    time.sleep(1)
+    self.fadeon(turquoise)
+    time.sleep(1)
+    self.shift(turquoise, gray)
     time.sleep(1)
     self.fadeoff(gray)
-    time.sleep(.25)
-    self.fadeon(turquoise)
-    self.slowshift(turquoise,gray)
-    self.slowshift(gray, green)
-    self.fadeoff(green)
-
+    time.sleep(1)
+    self.blink(orange)
+    
 if __name__=="__main__":
   led1 = LED(2,1,0)
   led1.test()
