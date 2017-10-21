@@ -41,7 +41,7 @@ class LED():
   def fadeon(self, color):
     i = 0
     limit = max(color.redpwm, color.greenpwm, color.bluepwm)
-    while 10*i <= limit:
+    for i in range(limit/10):
       if 10*i <= color.redpwm:
         pwm.set_pwm(self.redpin, 0, 10*i)
       else:
@@ -57,11 +57,14 @@ class LED():
         pwm.set_pwm(self.bluepin, 0, color.bluepwm) 
       time.sleep(.001)
       i += 1
+    pwm.set_pwm(self.redpin, 0, color.redpwm)
+    pwm.set_pwm(self.greenpin, 0, color.greenpwm)
+    pwm.set_pwm(self.bluepin, 0, color.bluepwm)   
 
   def fadeoff(self, color):
     i = 0
     limit = max(color.redpwm, color.greenpwm, color.bluepwm)
-    while 10*i <= limit:
+    for i in range(limit/10):
       if 10*i <= color.redpwm:
         pwm.set_pwm(self.redpin, 0, color.redpwm - 10*i)
       else:
@@ -84,7 +87,7 @@ class LED():
   def fadeonoff(self, color):
     i = 0
     limit = max(color.redpwm, color.greenpwm, color.bluepwm)
-    while 10*i <= limit:
+    for i in range(limit/10):
       if 10*i <= color.redpwm:
         pwm.set_pwm(self.redpin, 0, 10*i)
       else: pwm.set_pwm(self.redpin, 0, color.redpwm)
@@ -96,7 +99,7 @@ class LED():
       else: pwm.set_pwm(self.bluepin, 0, color.bluepwm)
       i += 1
     i = 0
-    while 10*i <= limit:
+    for i in range(limit/10):
       if 10*i <= color.redpwm:
         pwm.set_pwm(self.redpin, 0, color.redpwm - 10*i)
       else: pwm.set_pwm(self.redpin, 0, 0)
@@ -113,7 +116,7 @@ class LED():
 
   def blink(self, color):
     blinkspeed = .05
-    for x in range(10):
+    for x in range(20):
       self.turnon(color)
       time.sleep(blinkspeed)
       self.turnoff()
@@ -134,7 +137,7 @@ class LED():
     greendiff = abs(fromcolor.greenpwm - tocolor.greenpwm)
     bluediff = abs(fromcolor.bluepwm - tocolor.bluepwm)
     i = 0
-    while 10*i <= maxdiff:
+    for i in range(maxdiff/10):
       if 10*i <= reddiff:
         if fromcolor.redpwm < tocolor.redpwm:
           pwm.set_pwm(self.redpin, 0, fromcolor.redpwm + 10*i)
@@ -167,7 +170,7 @@ class LED():
     greendiff = abs(fromcolor.greenpwm - tocolor.greenpwm)
     bluediff = abs(fromcolor.bluepwm - tocolor.bluepwm)
     i = 0
-    while i <= maxdiff:
+    for i in range(maxdiff):
       if i <= reddiff:
         if fromcolor.redpwm < tocolor.redpwm:
           pwm.set_pwm(self.redpin, 0, fromcolor.redpwm + i)
@@ -195,13 +198,18 @@ class LED():
     pwm.set_pwm(self.bluepin, 0, tocolor.bluepwm)
 
   def test(self):
-    self.fadeon(red)
-    self.slowshift(red, green)
-    self.slowshift(green, gray)
-    self.slowshift(gray, turquoise)
-    self.slowshift(turquoise, purple)
-    self.slowshift(purple, orange)
-    self.fadeoff(orange)
+    self.turnon(red)
+    time.sleep(1)
+    self.shift(red,green)
+    time.sleep(1)
+    self.shift(green, gray)
+    time.sleep(1)
+    self.fadeoff(gray)
+    time.sleep(.25)
+    self.fadeon(turquoise)
+    self.slowshift(turquoise,gray)
+    self.slowshift(gray, green)
+    self.fadeoff(green)
 
 if __name__=="__main__":
   led1 = LED(2,1,0)
