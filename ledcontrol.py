@@ -197,38 +197,45 @@ class LED():
     x = Color(random.randint(0,255),random.randint(0,255),0)
     return x
 
-  def randomshifter(self):
-    i = self.randcolor()
-    j = self.randcolor()
+  def randcoolshifter(self):
+    i = self.randcoolcolor()
+    j = self.randcoolcolor()
     self.fadeon(i)
     time.sleep(2)
     for x in range(5):
       self.shift(i,j)
-      time.sleep(2)
+      time.sleep(random.randint(1,5))
       i = j
-      j = self.randcolor()
+      j = self.randcoolcolor()
     self.fadeoff(i)
-
-  def test(self):
-    self.turnon(red)
-    time.sleep(1)
+  
+  def fireplace(self):
+    for x in range(1000):
+      i = self.randwarmcolor()
+      self.turnoff()
+      self.turnon(i)
+      time.sleep(.025)
     self.turnoff()
-    self.fadeon(green)
-    time.sleep(1)
-    self.fadeoff(green)
-    time.sleep(1)
-    self.siren()
-    time.sleep(1)
-    self.fadeon(turquoise)
-    time.sleep(1)
-    self.shift(turquoise, gray)
-    time.sleep(1)
-    self.fadeoff(gray)
-    time.sleep(1)
-    self.blink(orange)
-    
+
 if __name__=="__main__":
-  led1 = LED(2,1,0)
-  led1.test()
+  try:
+    led1 = LED(2,1,0)
+    while True:
+      led1.randcoolshifter()
+      time.sleep(.5)
+      led1.fireplace()
+      time.sleep(.5)
+      led1.siren()
+      time.sleep(.5)
+      led1.blink(red)
+      time.sleep(.5)
+      led1.fadeon(turquoise)
+      time.sleep(1)
+      led1.shift(turquoise, red)
+      time.sleep(1)
+      led1.fadeoff(red)
+  except:
+    led1.turnoff()
+    print "\nOH SHIT"
   print "Yeah"
 
