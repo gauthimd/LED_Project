@@ -14,10 +14,12 @@ class Color():
 red = Color(255,0,0)
 green = Color(0,255,0)
 blue = Color(0,0,255)
-orange = Color(255,255,0)
+yellow = Color(215,200,0)
+orange = Color(255,50,0)
 turquoise = Color(0,255,255)
 purple = Color(255,0,255)
 gray = Color(100,100,100)
+white = Color(255,255,255)
 
 class LED():
 
@@ -117,10 +119,10 @@ class LED():
   def siren(self):
     for i in range(10):
       self.turnon(red)
-      time.sleep(.1)
+      time.sleep(.25)
       self.turnoff()
       self.turnon(blue)
-      time.sleep(.1)
+      time.sleep(.25)
       self.turnoff()
 
   def shift(self, fromcolor, tocolor):
@@ -194,7 +196,7 @@ class LED():
     return x
 
   def randwarmcolor(self):
-    x = Color(random.randint(0,255),random.randint(0,255),0)
+    x = Color(random.randint(55,255),random.randint(0,225),0)
     return x
 
   def randcoolshifter(self):
@@ -210,32 +212,53 @@ class LED():
     self.fadeoff(i)
   
   def fireplace(self):
-    for x in range(1000):
+    for x in range(100):
       i = self.randwarmcolor()
       self.turnoff()
       self.turnon(i)
       time.sleep(.025)
     self.turnoff()
 
+  def cyclecolors(self, cyctime):
+    self.turnon(red)
+    time.sleep(cyctime)
+    self.turnon(orange)
+    time.sleep(cyctime)
+    self.turnon(yellow)
+    time.sleep(cyctime)
+    self.turnon(green)
+    time.sleep(cyctime)
+    self.turnon(blue)
+    time.sleep(cyctime)
+    self.turnon(turquoise)
+    time.sleep(cyctime)
+    self.turnon(purple)
+    time.sleep(cyctime)
+    self.turnon(white)
+    time.sleep(cyctime)
+    self.turnoff()
+
+  def rainbowshift(self):
+    self.fadeon(red)
+    self.shift(red,orange)
+    self.shift(orange, yellow)
+    self.shift(yellow, green)
+    self.shift(green, turquoise)
+    self.shift(turquoise, blue)
+    self.shift(blue, purple)
+    self.shift(purple, white)
+    time.sleep(1)
+    self.fadeoff(white)
+
 if __name__=="__main__":
   try:
-    led1 = LED(2,1,0)
-    while True:
-      led1.randcoolshifter()
-      time.sleep(.5)
-      led1.fireplace()
-      time.sleep(.5)
-      led1.siren()
-      time.sleep(.5)
-      led1.blink(red)
-      time.sleep(.5)
-      led1.fadeon(turquoise)
-      time.sleep(1)
-      led1.shift(turquoise, red)
-      time.sleep(1)
-      led1.fadeoff(red)
+    led1 = LED(3,4,5)
+    for x in range(3):
+      led1.cyclecolors(.25)
+    led1.fireplace()
+    led1.siren()
+    led1.rainbowshift()
   except:
-    led1.turnoff()
     print "\nOH SHIT"
   print "Yeah"
 
