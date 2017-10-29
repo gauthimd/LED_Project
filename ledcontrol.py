@@ -1,9 +1,10 @@
 import Adafruit_PCA9685
-import time, random
+import time, random, lirc
 
 pwm = Adafruit_PCA9685.PCA9685()
-pwm.set_pwm_freq(100)
-
+pwm.set_pwm_freq(200)
+sockid = lirc.init("myprog", blocking=False)
+	
 class Color():
 
   def __init__(self, red, green, blue):
@@ -51,7 +52,6 @@ class LED():
         pwm.set_pwm(self.greenpin, 0, 10*i)
       else:
         pwm.set_pwm(self.greenpin, 0, color.greenpwm) 
-      time.sleep(.001)
       if 10*i <= color.bluepwm:
         pwm.set_pwm(self.bluepin, 0, 10*i)
       else:
@@ -199,6 +199,18 @@ class LED():
     x = Color(random.randint(55,255),random.randint(0,225),0)
     return x
 
+  def randshifter(self):
+    i = self.randcolor()
+    j = self.randcolor()
+    self.fadeon(i)
+    time.sleep(2)
+    for x in range(10):
+      self.shift(i,j)
+      time.sleep(1)
+      i = j
+      j = self.randcoolcolor()
+    self.fadeoff(i)
+
   def randcoolshifter(self):
     i = self.randcoolcolor()
     j = self.randcoolcolor()
@@ -251,14 +263,37 @@ class LED():
     self.fadeoff(white)
 
 if __name__=="__main__":
-  try:
-    led1 = LED(3,4,5)
-    for x in range(3):
-      led1.cyclecolors(.25)
-    led1.fireplace()
-    led1.siren()
-    led1.rainbowshift()
-  except:
-    print "\nOH SHIT"
-  print "Yeah"
+  led1 = LED(3,4,5)
+  while True:
+    try:
+      button = lirc.nextcode()
+      if len(button) != 0:
+        if button[0] == "1":
+          led1.fadeon(red)
+        elif button[0] == "2":
+          led1.fadeon(green)
+        elif button[0] == "3":
+          led1.fadeon(blue)
+        elif button[0] == "4":
+          led1.fireplace()
+        elif button[0] == "5":
+          led1.siren()
+        elif button[0] == "6":
+          led1.rainbowshift()
+        elif button[0] == "7":
+          led1.cyclecolors(.25)
+        elif button[0] == "8":
+          led1.randshifter()
+        elif button[0] == "9":
+          led1.fadeon(turquoise)
+        elif button[0] == "0":
+          led1.turnoff()
+      else:
+        time.sleep(.1)
+        continue 
+    except KeyboardInterrupt:
+      led1.turnoff()
+      print "\nOH SHIT"
+      break
+  print "Done"
 
