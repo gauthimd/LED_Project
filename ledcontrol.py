@@ -394,27 +394,27 @@ class System():
       x.bluediff = abs(x.bluepwm - tocolor.bluepwm)
       u.append(maxdiff)
     maxdiff = max(u)
-    for i in range(maxdiff/10):
+    for i in range(maxdiff/100):
       for x in t:
-        if 10*i <= x.reddiff:
+        if 100*i <= x.reddiff:
           if x.redpwm < tocolor.redpwm:
-            pwm.set_pwm(x.redpin, 0, x.redpwm + 10*i)
+            pwm.set_pwm(x.redpin, 0, x.redpwm + 100*i)
           elif x.redpwm > tocolor.redpwm:
-            pwm.set_pwm(x.redpin, 0, x.redpwm - 10*i)
+            pwm.set_pwm(x.redpin, 0, x.redpwm - 100*i)
         else:
           pwm.set_pwm(x.redpin, 0, tocolor.redpwm)
-        if 10*i <= x.greendiff:
+        if 100*i <= x.greendiff:
           if x.greenpwm < tocolor.greenpwm:
-            pwm.set_pwm(x.greenpin, 0, x.greenpwm + 10*i)
+            pwm.set_pwm(x.greenpin, 0, x.greenpwm + 100*i)
           elif x.greenpwm > tocolor.greenpwm:
-            pwm.set_pwm(x.greenpin, 0, x.greenpwm - 10*i)
+            pwm.set_pwm(x.greenpin, 0, x.greenpwm - 100*i)
         else:
           pwm.set_pwm(x.greenpin, 0, tocolor.greenpwm)
-        if 10*i <= x.bluediff:
+        if 100*i <= x.bluediff:
           if x.bluepwm < tocolor.bluepwm:
-            pwm.set_pwm(x.bluepin, 0, x.bluepwm + 10*i)
+            pwm.set_pwm(x.bluepin, 0, x.bluepwm + 100*i)
           elif x.bluepwm > tocolor.bluepwm:
-            pwm.set_pwm(x.bluepin, 0, x.bluepwm - 10*i)
+            pwm.set_pwm(x.bluepin, 0, x.bluepwm - 100*i)
         else:
           pwm.set_pwm(x.bluepin, 0, tocolor.bluepwm)
     for x in t:
@@ -453,9 +453,114 @@ class System():
     for x in t:
       x.turnoff()
 
+  def valentines(self):
+    self.turnoff()
+    for r in range(10):
+      for x in t:
+        pwm.set_pwm(x.redpin, 0, 2000)
+      time.sleep(1)
+      for x in t:
+        pwm.set_pwm(x.redpin, 0, 4000)
+      time.sleep(.05)
+      for x in t:
+        pwm.set_pwm(x.redpin, 0, 2000)
+      time.sleep(.05)
+      for x in t:
+        pwm.set_pwm(x.redpin, 0, 4000)
+      time.sleep(.05)
+      for x in t:
+        pwm.set_pwm(x.redpin, 0, 2000)
+
+  def fourthofjulyfade(self):
+    self.turnoff()
+    boo = 1 
+    for r in range(5):
+      if boo == 4: boo = 1
+      if boo == 1: d = {1:red, 2:white, 3:blue}
+      elif boo == 2: d = {1:white, 2:blue, 3:red}
+      elif boo == 3: d = {1:blue, 2:red, 3:white}
+      u = []
+      n = 1
+      for x in t:
+        if n > len(d): n = 1
+        maxdiff = max(abs(x.redpwm - d[n].redpwm), abs(x.greenpwm - d[n].greenpwm), abs(x.bluepwm - d[n].bluepwm))
+        x.reddiff = abs(x.redpwm - d[n].redpwm)
+        x.greendiff = abs(x.greenpwm - d[n].greenpwm)
+        x.bluediff = abs(x.bluepwm - d[n].bluepwm)
+        u.append(maxdiff)
+        n += 1
+      maxdiff = max(u)
+      for i in range(maxdiff/100):
+        n = 1
+        for x in t:
+          if n > len(d): n = 1
+          if 100*i <= x.reddiff:
+            if x.redpwm < d[n].redpwm:
+              pwm.set_pwm(x.redpin, 0, x.redpwm + 100*i)
+            elif x.redpwm > d[n].redpwm:
+              pwm.set_pwm(x.redpin, 0, x.redpwm - 100*i)
+          else:
+            pwm.set_pwm(x.redpin, 0, d[n].redpwm)
+          if 100*i <= x.greendiff:
+            if x.greenpwm < d[n].greenpwm:
+              pwm.set_pwm(x.greenpin, 0, x.greenpwm + 100*i)
+            elif x.greenpwm > d[n].greenpwm:
+              pwm.set_pwm(x.greenpin, 0, x.greenpwm - 100*i)
+          else:
+            pwm.set_pwm(x.greenpin, 0, d[n].greenpwm)
+          if 100*i <= x.bluediff:
+            if x.bluepwm < d[n].bluepwm:
+              pwm.set_pwm(x.bluepin, 0, x.bluepwm + 100*i)
+            elif x.bluepwm > d[n].bluepwm:
+              pwm.set_pwm(x.bluepin, 0, x.bluepwm - 100*i)
+          else:
+            pwm.set_pwm(x.bluepin, 0, d[n].bluepwm)
+          n += 1
+      n = 1
+      for x in t:
+        if n > len(d): n = 1
+        x.redpwm = d[n].redpwm
+        x.greenpwm = d[n].greenpwm
+        x.bluepwm = d[n].bluepwm
+        n += 1
+      boo += 1
+      time.sleep(1)
+
+  def fourthofjuly(self):
+    self.turnoff()
+    boo = 1 
+    for r in range(5):
+      if boo == 4: boo = 1
+      if boo == 1: d = {1:red, 2:white, 3:blue}
+      elif boo == 2: d = {1:white, 2:blue, 3:red}
+      elif boo == 3: d = {1:blue, 2:red, 3:white}
+      n = 1
+      for x in t:
+        if n > len(d): n = 1
+        x.turnon(d[n])
+        n += 1
+      boo += 1
+      time.sleep(.25)
+
   def christmas(self):
+    self.turnoff()
+    boo = 1 
+    for r in range(5):
+      if boo == 3: boo = 1
+      if boo == 1: d = {1:red, 2:green}
+      elif boo == 2: d = {1:green, 2:red}
+      n = 1
+      for x in t:
+        if n > len(d): n = 1
+        x.turnon(d[n])
+        n += 1
+      boo += 1
+      time.sleep(.5)
+
+  def christmasfade(self):
+    self.turnoff()
     boo = False
-    while True:
+    for r in range(5):
       if boo == False: d = {1:red, 2:green}
       else: d = {1:green, 2:red}
       u = []
@@ -503,7 +608,69 @@ class System():
         x.bluepwm = d[n].bluepwm
         n += 1
       boo = not(boo)
+      time.sleep(1)
+
+  def randcolor(self):
+    x = Color(random.randint(0,255),random.randint(0,255),random.randint(0,255))
+    return x
+
+  def randomize(self):
+    for r in range(20):
+      u = []
+      d = {1:self.randcolor(),2:self.randcolor(),3:self.randcolor()}
+      n = 1
+      for x in t:
+        if n > len(d): n = 1
+        maxdiff = max(abs(x.redpwm - d[n].redpwm), abs(x.greenpwm - d[n].greenpwm), abs(x.bluepwm - d[n].bluepwm))
+        x.reddiff = abs(x.redpwm - d[n].redpwm)
+        x.greendiff = abs(x.greenpwm - d[n].greenpwm)
+        x.bluediff = abs(x.bluepwm - d[n].bluepwm)
+        u.append(maxdiff)
+        n += 1
+      maxdiff = max(u)
+      for i in range(maxdiff/100):
+        n = 1
+        for x in t:
+          if n > len(d): n = 1
+          if 100*i <= x.reddiff:
+            if x.redpwm < d[n].redpwm:
+              pwm.set_pwm(x.redpin, 0, x.redpwm + 100*i)
+            elif x.redpwm > d[n].redpwm:
+              pwm.set_pwm(x.redpin, 0, x.redpwm - 100*i)
+          else:
+            pwm.set_pwm(x.redpin, 0, d[n].redpwm)
+          if 100*i <= x.greendiff:
+            if x.greenpwm < d[n].greenpwm:
+              pwm.set_pwm(x.greenpin, 0, x.greenpwm + 100*i)
+            elif x.greenpwm > d[n].greenpwm:
+              pwm.set_pwm(x.greenpin, 0, x.greenpwm - 100*i)
+          else:
+            pwm.set_pwm(x.greenpin, 0, d[n].greenpwm)
+          if 100*i <= x.bluediff:
+            if x.bluepwm < d[n].bluepwm:
+              pwm.set_pwm(x.bluepin, 0, x.bluepwm + 100*i)
+            elif x.bluepwm > d[n].bluepwm:
+              pwm.set_pwm(x.bluepin, 0, x.bluepwm - 100*i)
+          else:
+            pwm.set_pwm(x.bluepin, 0, d[n].bluepwm)
+          n += 1
+      n = 1
+      for x in t:
+        if n > len(d): n = 1
+        x.redpwm = d[n].redpwm
+        x.greenpwm = d[n].greenpwm
+        x.bluepwm = d[n].bluepwm
+        n += 1
+      time.sleep(1)
+
+  def randomsync(self):
+    d = {1:red,2:green,3:blue,4:turquoise,5:purple,6:orange,7:white}
+    for r in range(20):
+      y = random.randint(1,7)
+      for x in t:
+        x.shift(d[y])
       time.sleep(5)
+
 
 if __name__=="__main__":
   sys = System()
@@ -511,7 +678,9 @@ if __name__=="__main__":
   led2 = LED(3,4,5)
   led3 = LED(6,7,8)
   try:
-    sys.christmas()
+    sys.cyclecolors(.33)
+    time.sleep(.5)
+    sys.randomsync()
     sys.fadeoff()
   except KeyboardInterrupt:
     sys.turnoff()
