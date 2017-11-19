@@ -454,43 +454,57 @@ class System():
       x.turnoff()
 
   def christmas(self):
-    d = {1:red, 2:green, 3:white}
-    u = []
-    n = 1
-    for x in t:
-      maxdiff = max(abs(x.redpwm - d[n].redpwm), abs(x.greenpwm - d[n].greenpwm), abs(x.bluepwm - d[n].bluepwm))
-      x.reddiff = abs(x.redpwm - d[n].redpwm)
-      x.greendiff = abs(x.greenpwm - d[n].greenpwm)
-      x.bluediff = abs(x.bluepwm - d[n].bluepwm)
-      u.append(maxdiff)
-      n += 1
-    maxdiff = max(u)
-    for i in range(maxdiff/10):
+    boo = False
+    while True:
+      if boo == False: d = {1:red, 2:green}
+      else: d = {1:green, 2:red}
+      u = []
       n = 1
       for x in t:
-        if 10*i <= x.reddiff:
-          if x.redpwm < d[n].redpwm:
-            pwm.set_pwm(x.redpin, 0, x.redpwm + 10*i)
-          elif x.redpwm > d[n].redpwm:
-            pwm.set_pwm(x.redpin, 0, x.redpwm - 10*i)
-        else:
-          pwm.set_pwm(x.redpin, 0, d[n].redpwm)
-        if 10*i <= x.greendiff:
-          if x.greenpwm < d[n].greenpwm:
-            pwm.set_pwm(x.greenpin, 0, x.greenpwm + 10*i)
-          elif x.greenpwm > d[n].greenpwm:
-            pwm.set_pwm(x.greenpin, 0, x.greenpwm - 10*i)
-        else:
-          pwm.set_pwm(x.greenpin, 0, d[n].greenpwm)
-        if 10*i <= x.bluediff:
-          if x.bluepwm < d[n].bluepwm:
-            pwm.set_pwm(x.bluepin, 0, x.bluepwm + 10*i)
-          elif x.bluepwm > d[n].bluepwm:
-            pwm.set_pwm(x.bluepin, 0, x.bluepwm - 10*i)
-        else:
-          pwm.set_pwm(x.bluepin, 0, d[n].bluepwm)
+        if n > len(d): n = 1
+        maxdiff = max(abs(x.redpwm - d[n].redpwm), abs(x.greenpwm - d[n].greenpwm), abs(x.bluepwm - d[n].bluepwm))
+        x.reddiff = abs(x.redpwm - d[n].redpwm)
+        x.greendiff = abs(x.greenpwm - d[n].greenpwm)
+        x.bluediff = abs(x.bluepwm - d[n].bluepwm)
+        u.append(maxdiff)
         n += 1
-      
+      maxdiff = max(u)
+      for i in range(maxdiff/100):
+        n = 1
+        for x in t:
+          if n > len(d): n = 1
+          if 100*i <= x.reddiff:
+            if x.redpwm < d[n].redpwm:
+              pwm.set_pwm(x.redpin, 0, x.redpwm + 100*i)
+            elif x.redpwm > d[n].redpwm:
+              pwm.set_pwm(x.redpin, 0, x.redpwm - 100*i)
+          else:
+            pwm.set_pwm(x.redpin, 0, d[n].redpwm)
+          if 100*i <= x.greendiff:
+            if x.greenpwm < d[n].greenpwm:
+              pwm.set_pwm(x.greenpin, 0, x.greenpwm + 100*i)
+            elif x.greenpwm > d[n].greenpwm:
+              pwm.set_pwm(x.greenpin, 0, x.greenpwm - 100*i)
+          else:
+            pwm.set_pwm(x.greenpin, 0, d[n].greenpwm)
+          if 100*i <= x.bluediff:
+            if x.bluepwm < d[n].bluepwm:
+              pwm.set_pwm(x.bluepin, 0, x.bluepwm + 100*i)
+            elif x.bluepwm > d[n].bluepwm:
+              pwm.set_pwm(x.bluepin, 0, x.bluepwm - 100*i)
+          else:
+            pwm.set_pwm(x.bluepin, 0, d[n].bluepwm)
+          n += 1
+      n = 1
+      for x in t:
+        if n > len(d): n = 1
+        x.redpwm = d[n].redpwm
+        x.greenpwm = d[n].greenpwm
+        x.bluepwm = d[n].bluepwm
+        n += 1
+      boo = not(boo)
+      time.sleep(5)
+
 if __name__=="__main__":
   sys = System()
   led1 = LED(0,1,2)
@@ -498,7 +512,6 @@ if __name__=="__main__":
   led3 = LED(6,7,8)
   try:
     sys.christmas()
-    time.sleep(1)
     sys.fadeoff()
   except KeyboardInterrupt:
     sys.turnoff()
