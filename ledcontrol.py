@@ -674,14 +674,28 @@ class System():
 
 if __name__=="__main__":
   sys = System()
-  led1 = LED(0,1,2)
-  led2 = LED(3,4,5)
-  led3 = LED(6,7,8)
   try:
-    sys.cyclecolors(.33)
-    time.sleep(.5)
-    sys.randomsync()
-    sys.fadeoff()
+    while True:
+      for r in range(5):
+        sys.cyclecolors(.13)
+      time.sleep(.25)
+      sys.christmas()
+      time.sleep(.25)
+      sys.christmasfade()
+      time.sleep(.25)
+      sys.fourthofjuly()
+      time.sleep(.25)
+      sys.fourthofjulyfade()
+      time.sleep(.25)
+      sys.siren()
+      time.sleep(.25)
+      sys.randomize()
+      time.sleep(.25)
+      sys.valentines()
+      time.sleep(.25)
+      sys.randomsync()
+      time.sleep(.25)
+      sys.fadeoff()
   except KeyboardInterrupt:
     sys.turnoff()
     print "\nOH SHIT"
