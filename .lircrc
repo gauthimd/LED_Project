@@ -1,51 +1,85 @@
 begin
   prog = myprog 
-  button = KEY_1
-  config = 1 
+  button = KEY_POWER
+  config = Power 
 end
 begin
   prog = myprog
-  button = KEY_2
-  config = 2 
+  button = KEY_CHANNELUP
+  config = ModeUp 
 end
 begin
   prog = myprog
-  button = KEY_3
-  config = 3 
+  button = KEY_CHANNEL
+  config = Demo
 end
 begin
   prog = myprog
-  button = KEY_4
-  config = 4 
+  button = KEY_CHANNELDOWN
+  config = ModeDown
 end
 begin
   prog = myprog
-  button = KEY_5
-  config = 5 
+  button = KEY_BRIGHTNESSUP
+  config = BrightUp
 end
 begin
   prog = myprog
-  button = KEY_6
-  config = 6 
+  button = KEY_BRIGHTNESSDOWN
+  config = BrightDown
 end
 begin
   prog = myprog
-  button = KEY_7
-  config = 7 
+  button = KEY_UP
+  config = SpeedUp
 end
 begin
   prog = myprog
-  button = KEY_8
-  config = 8 
+  button = KEY_DOWN
+  config = SpeedDown
 end
 begin
   prog = myprog
-  button = KEY_9
-  config = 9 
+  button = BTN_1
+  config = White
 end
 begin
   prog = myprog
-  button = KEY_0
-  config = 0 
+  button = BTN_2
+  config = Red
 end
-
+begin
+  prog = myprog
+  button = BTN_3
+  config = Green
+end
+begin
+  prog = myprog
+  button = BTN_4
+  config = Blue
+end
+begin
+  prog = myprog
+  button = BTN_5
+  config = Yellow
+end
+begin
+  prog = myprog
+  button = BTN_6
+  config = Turq
+end
+begin
+  prog = myprog
+  button = BTN_7
+  config = Pink
+end
+begin
+  prog = myprog
+  button = BTN_8
+  config = ColorUp
+end
+begin
+  prog = myprog
+  button = BTN_9
+  config = ColorDown
+end
