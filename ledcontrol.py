@@ -1,9 +1,12 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import Adafruit_PCA9685
-import time, random
+import time, random, lirc
 
 pwm = Adafruit_PCA9685.PCA9685()
 pwm.set_pwm_freq(200)
-	
+sockid = lirc.init("myprog")
+
 class Color():
 
   def __init__(self, red, green, blue):
