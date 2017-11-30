@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import Adafruit_PCA9685
-import time, random, lirc
+import time, random, lirc, signal, threading, Queue
 
 pwm = Adafruit_PCA9685.PCA9685()
 pwm.set_pwm_freq(200)
-sockid = lirc.init("myprog")
+sockid = lirc.init("myprog", blocking=False)
 
 class Color():
 
@@ -377,7 +378,6 @@ class System():
       time.sleep(blinkspeed)
 
   def siren(self):
-    for i in range(50):
       for x in t:
         x.turnon(red)
       time.sleep(.25)
@@ -618,7 +618,6 @@ class System():
     return x
 
   def randomize(self):
-    for r in range(20):
       u = []
       d = {1:self.randcolor(),2:self.randcolor(),3:self.randcolor()}
       n = 1
@@ -664,7 +663,6 @@ class System():
         x.greenpwm = d[n].greenpwm
         x.bluepwm = d[n].bluepwm
         n += 1
-      time.sleep(1)
 
   def randomsync(self):
     d = {1:red,2:green,3:blue,4:turquoise,5:purple,6:orange,7:white}
@@ -674,33 +672,54 @@ class System():
         x.shift(d[y])
       time.sleep(5)
 
+  def checkcodes(self, q):
+    while True:
+      y = "string"
+      try:
+        x = lirc.nextcode()
+        for n in x:
+          y = x[0].encode('utf-8')
+        q.put(y)
+        time.sleep(.5)
+        continue
+      except: 
+        time.sleep(.5)
+        continue
+
+  def Run(self):
+    x = []
+    while True:
+      y = "string"
+      if len(x)== 0:
+        x = lirc.nextcode()
+      else:
+        for n in x:
+          y = x[0].encode('utf-8')
+        x = []
+      if y == "string": continue
+      elif y == "Ok": self.fadeoff()
+      elif y == "1": self.shift(red)
+      elif y == "2": self.shift(green)
+      elif y == "3": self.shift(blue)
+      elif y == "4": 
+        x = [] 
+        while len(x)==0:
+          self.siren()
+          x = lirc.nextcode()
+          continue
+      elif y == "5": 
+        while len(x)==0:  
+          self.cyclecolors(.25)
+          x = lirc.nextcode()
+          continue
+      time.sleep(.5)
+      continue
 
 if __name__=="__main__":
   sys = System()
   try:
-    while True:
-      for r in range(5):
-        sys.cyclecolors(.13)
-      time.sleep(.25)
-      sys.christmas()
-      time.sleep(.25)
-      sys.christmasfade()
-      time.sleep(.25)
-      sys.fourthofjuly()
-      time.sleep(.25)
-      sys.fourthofjulyfade()
-      time.sleep(.25)
-      sys.siren()
-      time.sleep(.25)
-      sys.randomize()
-      time.sleep(.25)
-      sys.valentines()
-      time.sleep(.25)
-      sys.randomsync()
-      time.sleep(.25)
-      sys.fadeoff()
+    sys.Run()
   except KeyboardInterrupt:
     sys.turnoff()
     print "\nOH SHIT"
-print "Done"
-
+  print "Done"
