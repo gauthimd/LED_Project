@@ -367,26 +367,27 @@ class System():
       x.greenpwm = 0
       x.bluepwm = 0
 
-  def blink(self, color):
-    blinkspeed = .05
-    for y in range(10):
-      for x in t:
-        x.turnon(color)
-      time.sleep(blinkspeed)
-      for x in t:
-        x.turnoff()
-      time.sleep(blinkspeed)
-
   def siren(self):
-      for x in t:
-        x.turnon(red)
-      time.sleep(.25)
-      for x in t:
-        x.turnoff()
-        x.turnon(blue)
-      time.sleep(.25)
-      for x in t:
-        x.turnoff()
+    initim = time.time()
+    delay = .25
+    then = initim + delay
+    colors = {1:red,2:blue}
+    th = threading.currentThread()
+    y = 1
+    for x in t:
+      x.turnon(colors[y])
+    while getattr(th, "do_run", True):
+      now = time.time()
+      if now > then:
+        y += 1
+        if y == 3: y = 1
+        for x in t:
+          x.turnoff()
+          x.turnon(colors[y])
+          then = now + delay
+      time.sleep(.001)
+    for x in t:
+      x.turnoff()
 
   def shift(self, tocolor):
     u = []
@@ -428,31 +429,24 @@ class System():
       x.greenpwm = tocolor.greenpwm
       x.bluepwm = tocolor.bluepwm
 
-  def cyclecolors(self, cyctime):
+  def cyclecolors(self):
+    colors = {1:red,2:orange,3:yellow,4:green,5:blue,6:turquoise,7:purple,8:white}
+    th = threading.currentThread()
+    y = 1
+    initim = time.time()
+    delay = .25
+    then = initim + delay
     for x in t:
-      x.turnon(red)
-    time.sleep(cyctime)
-    for x in t:
-      x.turnon(orange)
-    time.sleep(cyctime)
-    for x in t:
-      x.turnon(yellow)
-    time.sleep(cyctime)
-    for x in t:
-      x.turnon(green)
-    time.sleep(cyctime)
-    for x in t:
-      x.turnon(blue)
-    time.sleep(cyctime)
-    for x in t:
-      x.turnon(turquoise)
-    time.sleep(cyctime)
-    for x in t:
-      x.turnon(purple)
-    time.sleep(cyctime)
-    for x in t:
-      x.turnon(white)
-    time.sleep(cyctime)
+      x.turnon(colors[y])
+    while getattr(th, "do_run", True):
+      now = time.time()
+      if now > then:
+        y +=1
+        if y==9: y=1
+        for x in t:
+          x.turnon(colors[y])
+        then = now + delay
+      time.sleep(.001)
     for x in t:
       x.turnoff()
 
@@ -673,52 +667,58 @@ class System():
       time.sleep(5)
 
   def checkcodes(self, q):
-    while True:
-      y = "string"
+    th = threading.currentThread()
+    while getattr(th, "do_run", True):
       try:
         x = lirc.nextcode()
+        y = ""
         for n in x:
           y = x[0].encode('utf-8')
         q.put(y)
-        time.sleep(.5)
-        continue
-      except: 
-        time.sleep(.5)
-        continue
+        time.sleep(.1)
+      except KeyboardInterrupt: break
 
-  def Run(self):
-    x = []
+  def run(self):
+    d = {'1':self.shift,'2':self.shift,'3':self.shift,'4':self.shift,
+         '5':self.shift,'6':self.shift,'7':self.siren,'8':self.cyclecolors,
+         'Ok':self.fadeoff,'0':self.shift}
+    d2 = {'1':red,'2':green,'3':blue,'4':orange,'5':turquoise,'6':purple,
+          '0':white}
+    q = Queue.Queue()
+    t1 = threading.Thread(target=self.checkcodes,args=(q,))
+    t1.daemon = True
+    t1.start()
     while True:
-      y = "string"
-      if len(x)== 0:
-        x = lirc.nextcode()
-      else:
-        for n in x:
-          y = x[0].encode('utf-8')
-        x = []
-      if y == "string": continue
-      elif y == "Ok": self.fadeoff()
-      elif y == "1": self.shift(red)
-      elif y == "2": self.shift(green)
-      elif y == "3": self.shift(blue)
-      elif y == "4": 
-        x = [] 
-        while len(x)==0:
-          self.siren()
-          x = lirc.nextcode()
-          continue
-      elif y == "5": 
-        while len(x)==0:  
-          self.cyclecolors(.25)
-          x = lirc.nextcode()
-          continue
-      time.sleep(.5)
-      continue
+      try:
+        y = q.get()
+        if len(y) > 0:
+          if y in d:
+            try:
+              t2.do_run = False
+              t2.join()
+            except: pass
+            if y in d2:
+              t2 = threading.Thread(target=d[y],args=(d2[y],))
+              t2.daemon = True
+              t2.start()
+            else:
+              t2 = threading.Thread(target=d[y])
+              t2.daemon = True
+              t2.start()
+        time.sleep(.1)
+      except KeyboardInterrupt:
+        break
+    try:
+      t1.do_run = False
+      t1.join()
+      t2.do_run = False
+      t2.join()
+    except: pass
 
 if __name__=="__main__":
   sys = System()
   try:
-    sys.Run()
+    sys.run()
   except KeyboardInterrupt:
     sys.turnoff()
     print "\nOH SHIT"
