@@ -1,23 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import Adafruit_PCA9685
-import time, random, lirc, signal, threading, Queue
+import Adafruit_PCA9685  #module for PWM driver board
+import time, random, lirc, threading, Queue
+from colors import Color
+from LED import LED
 
-pwm = Adafruit_PCA9685.PCA9685()
+pwm = Adafruit_PCA9685.PCA9685() #init for PWM driver
 pwm.set_pwm_freq(200)
-sockid = lirc.init("myprog", blocking=False)
-global bright
-bright = 1
+sockid = lirc.init("myprog", blocking=False) #init for LIRC socket
 
-class Color():
-
-  def __init__(self, red, green, blue):
-    self.redpwm = int(red*16.059)   #Convert 8 bits to 12 bits 
-    self.greenpwm = int(green*16.059)   
-    self.bluepwm = int(blue*16.059)
-
-red = Color(255,0,0)
+red = Color(255,0,0) #instantiate color objects from colors.py
 green = Color(0,255,0)
 blue = Color(0,0,255)
 yellow = Color(215,200,0)
@@ -27,289 +20,49 @@ purple = Color(255,0,255)
 gray = Color(100,100,100)
 white = Color(255,255,255)
 
-class LED():
+led1 = LED(0,1,2) #instantiate 3 LED objects for this 3 LED system
+led2 = LED(3,4,5) #LED(R,G,B) = PWM board pin numbers
+led3 = LED(6,7,8)
 
-  def __init__(self, redpin, greenpin, bluepin):
-    pwm = Adafruit_PCA9685.PCA9685()
-    pwm.set_pwm_freq(100)
-    self.redpin = redpin
-    self.greenpin = greenpin
-    self.bluepin = bluepin
-    self.redpwm = 0
-    self.greenpwm = 0
-    self.bluepwm = 0
-
-  def turnon(self, color):
-    pwm.set_pwm(self.redpin, 0, int(color.redpwm*bright))
-    pwm.set_pwm(self.greenpin, 0, int(color.greenpwm*bright))
-    pwm.set_pwm(self.bluepin, 0, int(color.bluepwm*bright))
-    self.redpwm = int(color.redpwm*bright)
-    self.greenpwm = int(color.greenpwm*bright)
-    self.bluepwm = int(color.bluepwm*bright)
-
-  def turnoff(self):
-    pwm.set_pwm(self.redpin, 0, 0)
-    pwm.set_pwm(self.greenpin, 0, 0)
-    pwm.set_pwm(self.bluepin, 0, 0)
-    self.redpwm = 0
-    self.greenpwm = 0
-    self.bluepwm = 0
-
-  def fadeon(self, color):
-    limit = max(color.redpwm, color.greenpwm, color.bluepwm)
-    for i in range(limit/100):
-      if 100*i <= color.redpwm:
-        pwm.set_pwm(self.redpin, 0, 100*i)
-      else:
-        pwm.set_pwm(self.redpin, 0, color.redpwm) 
-      if 100*i <= color.greenpwm:
-        pwm.set_pwm(self.greenpin, 0, 100*i)
-      else:
-        pwm.set_pwm(self.greenpin, 0, color.greenpwm) 
-      if 100*i <= color.bluepwm:
-        pwm.set_pwm(self.bluepin, 0, 100*i)
-      else:
-        pwm.set_pwm(self.bluepin, 0, color.bluepwm) 
-      time.sleep(.001)
-    pwm.set_pwm(self.redpin, 0, color.redpwm)
-    pwm.set_pwm(self.greenpin, 0, color.greenpwm)
-    pwm.set_pwm(self.bluepin, 0, color.bluepwm)   
-    self.redpwm = color.redpwm
-    self.greenpwm = color.greenpwm
-    self.bluepwm = color.bluepwm
-
-  def fadeoff(self):
-    limit = max(self.redpwm, self.greenpwm, self.bluepwm)
-    for i in range(limit/100):
-      if 100*i <= self.redpwm:
-        pwm.set_pwm(self.redpin, 0, self.redpwm - 100*i)
-      else:
-        pwm.set_pwm(self.redpin, 0, 0) 
-      if 100*i <= self.greenpwm:
-        pwm.set_pwm(self.greenpin, 0, self.greenpwm - 100*i)
-      else:
-        pwm.set_pwm(self.greenpin, 0, 0) 
-      if 100*i <= self.bluepwm:
-        pwm.set_pwm(self.bluepin, 0, self.bluepwm - 100*i)
-      else:
-        pwm.set_pwm(self.bluepin, 0, 0) 
-      time.sleep(.001)
-    pwm.set_pwm(self.redpin, 0, 0)
-    pwm.set_pwm(self.greenpin, 0, 0)
-    pwm.set_pwm(self.bluepin, 0, 0)  
-    self.redpwm = 0
-    self.greenpwm = 0
-    self.bluepwm = 0
-
-  def fadeonoff(self, color):
-    limit = max(color.redpwm, color.greenpwm, color.bluepwm)
-    for i in range(limit/10):
-      if 10*i <= color.redpwm:
-        pwm.set_pwm(self.redpin, 0, 10*i)
-      else: pwm.set_pwm(self.redpin, 0, color.redpwm)
-      if 10*i <= color.greenpwm:
-        pwm.set_pwm(self.greenpin, 0, 10*i)
-      else: pwm.set_pwm(self.greenpin, 0, color.greenpwm)
-      if 10*i <= color.bluepwm:
-        pwm.set_pwm(self.bluepin, 0, 10*i)
-      else: pwm.set_pwm(self.bluepin, 0, color.bluepwm)
-    self.redpwm = color.redpwm
-    self.greenpwm = color.greenpwm
-    self.bluepwm = color.bluepwm
-    for i in range(limit/10):
-      if 10*i <= color.redpwm:
-        pwm.set_pwm(self.redpin, 0, color.redpwm - 10*i)
-      else: pwm.set_pwm(self.redpin, 0, 0)
-      if 10*i <= color.greenpwm:
-        pwm.set_pwm(self.greenpin, 0, color.greenpwm - 10*i)
-      else: pwm.set_pwm(self.greenpin, 0, 0)
-      if 10*i <= color.bluepwm:
-        pwm.set_pwm(self.bluepin, 0, color.bluepwm - 10*i)
-      else: pwm.set_pwm(self.bluepin, 0, 0)
-    pwm.set_pwm(self.redpin, 0, 0)
-    pwm.set_pwm(self.greenpin, 0, 0)
-    pwm.set_pwm(self.bluepin, 0, 0)
-    self.redpwm = 0
-    self.greenpwm = 0
-    self.bluepwm = 0
-
-  def blink(self, color):
-    blinkspeed = .05
-    for x in range(20):
-      self.turnon(color)
-      time.sleep(blinkspeed)
-      self.turnoff()
-      time.sleep(blinkspeed)
-
-  def siren(self):
-    for i in range(10):
-      self.turnon(red)
-      time.sleep(.25)
-      self.turnoff()
-      self.turnon(blue)
-      time.sleep(.25)
-      self.turnoff()
-
-  def shift(self, tocolor):
-    maxdiff = max(abs(self.redpwm - tocolor.redpwm), abs(self.greenpwm - tocolor.greenpwm), abs(self.bluepwm - tocolor.bluepwm))
-    reddiff = abs(self.redpwm - tocolor.redpwm)
-    greendiff = abs(self.greenpwm - tocolor.greenpwm)
-    bluediff = abs(self.bluepwm - tocolor.bluepwm)
-    for i in range(maxdiff/10):
-      if 10*i <= reddiff:
-        if self.redpwm < tocolor.redpwm:
-          pwm.set_pwm(self.redpin, 0, self.redpwm + 10*i)
-        elif self.redpwm > tocolor.redpwm:
-          pwm.set_pwm(self.redpin, 0, self.redpwm - 10*i)
-      else:
-        pwm.set_pwm(self.redpin, 0, tocolor.redpwm)
-      if 10*i <= greendiff:
-        if self.greenpwm < tocolor.greenpwm:
-          pwm.set_pwm(self.greenpin, 0, self.greenpwm + 10*i)
-        elif self.greenpwm > tocolor.greenpwm:
-          pwm.set_pwm(self.greenpin, 0, self.greenpwm - 10*i)
-      else:
-        pwm.set_pwm(self.greenpin, 0, tocolor.greenpwm)
-      if 10*i <= bluediff:
-        if self.bluepwm < tocolor.bluepwm:
-          pwm.set_pwm(self.bluepin, 0, self.bluepwm + 10*i)
-        elif self.bluepwm > tocolor.bluepwm:
-          pwm.set_pwm(self.bluepin, 0, self.bluepwm - 10*i)
-      else:
-        pwm.set_pwm(self.bluepin, 0, tocolor.bluepwm)
-    pwm.set_pwm(self.redpin, 0, tocolor.redpwm)
-    pwm.set_pwm(self.greenpin, 0, tocolor.greenpwm)
-    pwm.set_pwm(self.bluepin, 0, tocolor.bluepwm)
-    self.redpwm = tocolor.redpwm
-    self.greenpwm = tocolor.greenpwm
-    self.bluepwm = tocolor.bluepwm
-
-  def slowshift(self, fromcolor, tocolor):
-    maxdiff = max(abs(fromcolor.redpwm - tocolor.redpwm), abs(fromcolor.greenpwm - tocolor.greenpwm), abs(fromcolor.bluepwm - tocolor.bluepwm))
-    reddiff = abs(fromcolor.redpwm - tocolor.redpwm)
-    greendiff = abs(fromcolor.greenpwm - tocolor.greenpwm)
-    bluediff = abs(fromcolor.bluepwm - tocolor.bluepwm)
-    for i in range(maxdiff):
-      if i <= reddiff:
-        if fromcolor.redpwm < tocolor.redpwm:
-          pwm.set_pwm(self.redpin, 0, fromcolor.redpwm + i)
-        elif fromcolor.redpwm > tocolor.redpwm:
-          pwm.set_pwm(self.redpin, 0, fromcolor.redpwm - i)
-      else:
-        pwm.set_pwm(self.redpin, 0, tocolor.redpwm)
-      if i <= greendiff:
-        if fromcolor.greenpwm < tocolor.greenpwm:
-          pwm.set_pwm(self.greenpin, 0, fromcolor.greenpwm + i)
-        elif fromcolor.greenpwm > tocolor.greenpwm:
-          pwm.set_pwm(self.greenpin, 0, fromcolor.greenpwm - i)
-      else:
-        pwm.set_pwm(self.greenpin, 0, tocolor.greenpwm)
-      if i <= bluediff:
-        if fromcolor.bluepwm < tocolor.bluepwm:
-          pwm.set_pwm(self.bluepin, 0, fromcolor.bluepwm + i)
-        elif fromcolor.bluepwm > tocolor.bluepwm:
-          pwm.set_pwm(self.bluepin, 0, fromcolor.bluepwm - i)
-      else:
-        pwm.set_pwm(self.bluepin, 0, tocolor.bluepwm)
-    pwm.set_pwm(self.redpin, 0, tocolor.redpwm)
-    pwm.set_pwm(self.greenpin, 0, tocolor.greenpwm)
-    pwm.set_pwm(self.bluepin, 0, tocolor.bluepwm)
-
-  def randcolor(self):
-    x = Color(random.randint(0,255),random.randint(0,255),random.randint(0,255))
-    return x
-
-  def randcoolcolor(self):
-    x = Color(0,random.randint(0,255),random.randint(0,255))
-    return x
-
-  def randwarmcolor(self):
-    x = Color(random.randint(55,255),random.randint(0,225),0)
-    return x
-
-  def randshifter(self):
-    i = self.randcolor()
-    j = self.randcolor()
-    self.fadeon(i)
-    time.sleep(2)
-    for x in range(10):
-      self.shift(i,j)
-      time.sleep(1)
-      i = j
-      j = self.randcoolcolor()
-    self.fadeoff(i)
-
-  def randcoolshifter(self):
-    i = self.randcoolcolor()
-    j = self.randcoolcolor()
-    self.fadeon(i)
-    time.sleep(2)
-    for x in range(5):
-      self.shift(i,j)
-      time.sleep(random.randint(1,5))
-      i = j
-      j = self.randcoolcolor()
-    self.fadeoff(i)
-  
-  def fireplace(self):
-    for x in range(100):
-      i = self.randwarmcolor()
-      self.turnoff()
-      self.turnon(i)
-      time.sleep(.025)
-    self.turnoff()
-
-  def cyclecolors(self, cyctime):
-    self.turnon(red)
-    time.sleep(cyctime)
-    self.turnon(orange)
-    time.sleep(cyctime)
-    self.turnon(yellow)
-    time.sleep(cyctime)
-    self.turnon(green)
-    time.sleep(cyctime)
-    self.turnon(blue)
-    time.sleep(cyctime)
-    self.turnon(turquoise)
-    time.sleep(cyctime)
-    self.turnon(purple)
-    time.sleep(cyctime)
-    self.turnon(white)
-    time.sleep(cyctime)
-    self.turnoff()
-
-  def rainbowshift(self):
-    self.fadeon(red)
-    self.shift(red,orange)
-    self.shift(orange, yellow)
-    self.shift(yellow, green)
-    self.shift(green, turquoise)
-    self.shift(turquoise, blue)
-    self.shift(blue, purple)
-    self.shift(purple, white)
-    time.sleep(1)
-    self.fadeoff(white)
+t = [led1, led2, led3] #list used to cycle through for modes
 
 class System():
-  led1 = LED(0,1,2)
-  led2 = LED(3,4,5)
-  led3 = LED(6,7,8)
-  global t
-  t = [led1, led2, led3]
 
   def __init__(self):
+      self.bright = .5
+      self.delay = .5
       self.mode = 'Ok'
+      self.modenum = 0
       self.args = None
 
   def turnon(self, color):
-    global bright
     for x in t:
-      pwm.set_pwm(x.redpin, 0, color.redpwm*bright)
-      pwm.set_pwm(x.greenpin, 0, color.greenpwm*bright)
-      pwm.set_pwm(x.bluepin, 0, color.bluepwm*bright)
-      x.redpwm = color.redpwm*bright
-      x.greenpwm = color.greenpwm*bright
-      x.bluepwm = color.bluepwm*bright
+      pwm.set_pwm(x.redpin, 0, int(color.redpwm*self.bright))
+      pwm.set_pwm(x.greenpin, 0, int(color.greenpwm*self.bright))
+      pwm.set_pwm(x.bluepin, 0, int(color.bluepwm*self.bright))
+      x.redpwm = int(color.redpwm*self.bright)
+      x.greenpwm = int(color.greenpwm*self.bright)
+      x.bluepwm = int(color.bluepwm*self.bright)
+
+  def turnon3separate(self, color1, color2, color3): # i MUST BE 0,1, or 2 !!!!!!
+      pwm.set_pwm(t[0].redpin, 0, int(color1.redpwm*self.bright))
+      pwm.set_pwm(t[0].greenpin, 0, int(color1.greenpwm*self.bright))
+      pwm.set_pwm(t[0].bluepin, 0, int(color1.bluepwm*self.bright))
+      t[0].redpwm = int(color1.redpwm*self.bright)
+      t[0].greenpwm = int(color1.greenpwm*self.bright)
+      t[0].bluepwm = int(color1.bluepwm*self.bright)
+      pwm.set_pwm(t[1].redpin, 0, int(color2.redpwm*self.bright))
+      pwm.set_pwm(t[1].greenpin, 0, int(color2.greenpwm*self.bright))
+      pwm.set_pwm(t[1].bluepin, 0, int(color2.bluepwm*self.bright))
+      t[1].redpwm = int(color2.redpwm*self.bright)
+      t[1].greenpwm = int(color2.greenpwm*self.bright)
+      t[1].bluepwm = int(color2.bluepwm*self.bright)
+      pwm.set_pwm(t[2].redpin, 0, int(color3.redpwm*self.bright))
+      pwm.set_pwm(t[2].greenpin, 0, int(color3.greenpwm*self.bright))
+      pwm.set_pwm(t[2].bluepin, 0, int(color3.bluepwm*self.bright))
+      t[2].redpwm = int(color3.redpwm*self.bright)
+      t[2].greenpwm = int(color3.greenpwm*self.bright)
+      t[2].bluepwm = int(color3.bluepwm*self.bright)
 
   def turnoff(self):
     for x in t:
@@ -319,32 +72,6 @@ class System():
       x.redpwm = 0
       x.greenpwm = 0
       x.bluepwm = 0
-
-  def fadeon(self, color):
-    global bright
-    limit = max(color.redpwm*bright, color.greenpwm*bright, color.bluepwm*bright)
-    for i in range(limit/100):
-      for x in t:
-        if 100*i <= color.redpwm*bright:
-          pwm.set_pwm(x.redpin, 0, 100*i)
-        else:
-          pwm.set_pwm(x.redpin, 0, color.redpwm*bright) 
-        if 100*i <= color.greenpwm*bright:
-          pwm.set_pwm(x.greenpin, 0, 100*i)
-        else:
-          pwm.set_pwm(x.greenpin, 0, color.greenpwm*bright) 
-        if 100*i <= color.bluepwm*bright:
-          pwm.set_pwm(x.bluepin, 0, 100*i)
-        else:
-          pwm.set_pwm(x.bluepin, 0, color.bluepwm*bright) 
-      time.sleep(.001)
-    for x in t:
-      pwm.set_pwm(x.redpin, 0, color.redpwm*bright)
-      pwm.set_pwm(x.greenpin, 0, color.greenpwm*bright)
-      pwm.set_pwm(x.bluepin, 0, color.bluepwm*bright)   
-      x.redpwm = color.redpwm*bright
-      x.greenpwm = color.greenpwm*bright
-      x.bluepwm = color.bluepwm*bright
 
   def fadeoff(self):
     u = []
@@ -375,107 +102,160 @@ class System():
       x.greenpwm = 0
       x.bluepwm = 0
 
-  def siren(self):
-    initim = time.time()
-    delay = .25
-    then = initim + delay
-    colors = {1:red,2:blue}
-    th = threading.currentThread()
-    y = 1
-    for x in t:
-      x.turnon(colors[y])
-    while getattr(th, "do_run", True):
-      now = time.time()
-      if now > then:
-        y += 1
-        if y == 3: y = 1
-        for x in t:
-          x.turnoff()
-          x.turnon(colors[y])
-          then = now + delay
-      time.sleep(.001)
-    for x in t:
-      x.turnoff()
-
   def shift(self, tocolor):
-    global bright
     u = []
     for x in t:
-      maxdiff = max(abs(x.redpwm - tocolor.redpwm*bright), abs(x.greenpwm - tocolor.greenpwm*bright), abs(x.bluepwm - tocolor.bluepwm*bright))
-      x.reddiff = abs(x.redpwm - tocolor.redpwm*bright)
-      x.greendiff = abs(x.greenpwm - tocolor.greenpwm*bright)
-      x.bluediff = abs(x.bluepwm - tocolor.bluepwm*bright)
+      maxdiff = max(abs(x.redpwm - tocolor.redpwm*self.bright), abs(x.greenpwm - tocolor.greenpwm*self.bright), abs(x.bluepwm - tocolor.bluepwm*self.bright))
+      x.reddiff = abs(x.redpwm - tocolor.redpwm*self.bright)
+      x.greendiff = abs(x.greenpwm - tocolor.greenpwm*self.bright)
+      x.bluediff = abs(x.bluepwm - tocolor.bluepwm*self.bright)
       u.append(maxdiff)
     maxdiff = max(u)
     for i in range(int(maxdiff/100)):
       for x in t:
         if 100*i <= x.reddiff:
-          if x.redpwm < tocolor.redpwm*bright:
+          if x.redpwm < tocolor.redpwm*self.bright:
             pwm.set_pwm(x.redpin, 0, x.redpwm + 100*i)
-          elif x.redpwm > tocolor.redpwm*bright:
+          elif x.redpwm > tocolor.redpwm*self.bright:
             pwm.set_pwm(x.redpin, 0, x.redpwm - 100*i)
         else:
-          pwm.set_pwm(x.redpin, 0, int(tocolor.redpwm*bright))
+          pwm.set_pwm(x.redpin, 0, int(tocolor.redpwm*self.bright))
         if 100*i <= x.greendiff:
-          if x.greenpwm < tocolor.greenpwm*bright:
+          if x.greenpwm < tocolor.greenpwm*self.bright:
             pwm.set_pwm(x.greenpin, 0, x.greenpwm + 100*i)
-          elif x.greenpwm > tocolor.greenpwm*bright:
+          elif x.greenpwm > tocolor.greenpwm*self.bright:
             pwm.set_pwm(x.greenpin, 0, x.greenpwm - 100*i)
         else:
-          pwm.set_pwm(x.greenpin, 0, int(tocolor.greenpwm*bright))
+          pwm.set_pwm(x.greenpin, 0, int(tocolor.greenpwm*self.bright))
         if 100*i <= x.bluediff:
-          if x.bluepwm < tocolor.bluepwm*bright:
+          if x.bluepwm < tocolor.bluepwm*self.bright:
             pwm.set_pwm(x.bluepin, 0, x.bluepwm + 100*i)
-          elif x.bluepwm > tocolor.bluepwm*bright:
+          elif x.bluepwm > tocolor.bluepwm*self.bright:
             pwm.set_pwm(x.bluepin, 0, x.bluepwm - 100*i)
         else:
-          pwm.set_pwm(x.bluepin, 0, int(tocolor.bluepwm*bright))
+          pwm.set_pwm(x.bluepin, 0, int(tocolor.bluepwm*self.bright))
     for x in t:
-      pwm.set_pwm(x.redpin, 0, int(tocolor.redpwm*bright))
-      pwm.set_pwm(x.greenpin, 0, int(tocolor.greenpwm*bright))
-      pwm.set_pwm(x.bluepin, 0, int(tocolor.bluepwm*bright))
-      x.redpwm = int(tocolor.redpwm*bright)
-      x.greenpwm = int(tocolor.greenpwm*bright)
-      x.bluepwm = int(tocolor.bluepwm*bright)
+      pwm.set_pwm(x.redpin, 0, int(tocolor.redpwm*self.bright))
+      pwm.set_pwm(x.greenpin, 0, int(tocolor.greenpwm*self.bright))
+      pwm.set_pwm(x.bluepin, 0, int(tocolor.bluepwm*self.bright))
+      x.redpwm = int(tocolor.redpwm*self.bright)
+      x.greenpwm = int(tocolor.greenpwm*self.bright)
+      x.bluepwm = int(tocolor.bluepwm*self.bright)
 
-  def cyclecolors(self):
-    colors = {1:red,2:orange,3:yellow,4:green,5:blue,6:turquoise,7:purple,8:white}
+  def siren(self):
+    self.mode = self.siren
+    self.args = 'None'
+    delay = .528*self.delay-.028 #puts delay btwn .025sec and 2 sec
+    initim = time.time()
+    then = initim + delay
+    colors = {1:red,2:blue}
     th = threading.currentThread()
     y = 1
+    self.turnoff()
+    self.turnon(colors[y])
+    while getattr(th, "do_run", True):
+      now = time.time()
+      if now > then:
+        y += 1
+        if y == 3: y = 1
+        self.turnoff()
+        self.turnon(colors[y])
+        then = now + delay
+      time.sleep(.001)
+
+  def cyclecolors(self):
+    self.mode = self.cyclecolors
+    self.args = 'None'
+    th = threading.currentThread()
     initim = time.time()
-    delay = .25
-    then = initim + delay
-    for x in t:
-      x.turnon(colors[y])
+    then = initim + self.delay
+    colors = {1:red,2:orange,3:yellow,4:green,5:blue,6:turquoise,7:purple,8:white}
+    y = 1
+    self.turnoff()
+    self.turnon(colors[y])
     while getattr(th, "do_run", True):
       now = time.time()
       if now > then:
         y +=1
         if y==9: y=1
-        for x in t:
-          x.turnon(colors[y])
-        then = now + delay
+        self.turnon(colors[y])
+        then = now + self.delay
       time.sleep(.001)
-    for x in t:
-      x.turnoff()
 
   def valentines(self):
+    self.mode = self.valentines
+    self.args = 'None'
+    ldelay = 1
+    sdelay = .05
+    n = 1
+    th = threading.currentThread()
+    initim = time.time()
+    then = initim + ldelay
     self.turnoff()
-    for r in range(10):
-      for x in t:
-        pwm.set_pwm(x.redpin, 0, 2000)
-      time.sleep(1)
-      for x in t:
-        pwm.set_pwm(x.redpin, 0, 4000)
-      time.sleep(.05)
-      for x in t:
-        pwm.set_pwm(x.redpin, 0, 2000)
-      time.sleep(.05)
-      for x in t:
-        pwm.set_pwm(x.redpin, 0, 4000)
-      time.sleep(.05)
-      for x in t:
-        pwm.set_pwm(x.redpin, 0, 2000)
+    for x in t:
+      pwm.set_pwm(x.redpin, 0, int(2000*self.bright))
+    while getattr(th, "do_run", True):
+      now = time.time()
+      if now > then:
+        if n % 2 != 0:
+          for x in t:
+            pwm.set_pwm(x.redpin, 0, int(4000*self.bright))
+          n += 1
+          if n > 4:
+            n = 1
+            then = now + ldelay
+          else:
+            then = now + sdelay
+        else:
+          for x in t:
+            pwm.set_pwm(x.redpin, 0, int(2000*self.bright))
+          then = now + sdelay
+          n += 1
+      else: time.sleep(.001)
+
+  def fourthofjuly(self):
+    self.mode = self.fourthofjuly
+    self.args = 'None'
+    th = threading.currentThread()
+    n = 0
+    initim = time.time()
+    then = initim + self.delay
+    self.turnoff()
+    while getattr(th, "do_run", True):
+      now = time.time()
+      if now > then:
+        if n == 0:
+          self.turnon3separate(red,white,blue)
+        if n == 1:
+          self.turnon3separate(white,blue,red)
+        if n == 2:
+          self.turnon3separate(blue,red,white)
+        n += 1
+        if n > 2: n = 0
+        then = now + self.delay
+      else: time.sleep(.001)
+
+  def christmas(self):
+    self.mode = self.christmas
+    self.args = 'None'
+    th = threading.currentThread()
+    n = 0
+    initim = time.time()
+    then = initim + self.delay
+    self.turnoff()
+    while getattr(th, "do_run", True):
+      now = time.time()
+      if now > then:
+        if n == 0:
+          self.turnon3separate(red,green,white)
+        if n == 1:
+          self.turnon3separate(green,white,red)
+        if n == 2:
+          self.turnon3separate(white,red,green)
+        n += 1
+        if n > 2: n = 0
+        then = now + self.delay
+      else: time.sleep(.001)
 
   def fourthofjulyfade(self):
     self.turnoff()
@@ -531,37 +311,6 @@ class System():
         n += 1
       boo += 1
       time.sleep(1)
-
-  def fourthofjuly(self):
-    self.turnoff()
-    boo = 1 
-    for r in range(5):
-      if boo == 4: boo = 1
-      if boo == 1: d = {1:red, 2:white, 3:blue}
-      elif boo == 2: d = {1:white, 2:blue, 3:red}
-      elif boo == 3: d = {1:blue, 2:red, 3:white}
-      n = 1
-      for x in t:
-        if n > len(d): n = 1
-        x.turnon(d[n])
-        n += 1
-      boo += 1
-      time.sleep(.25)
-
-  def christmas(self):
-    self.turnoff()
-    boo = 1 
-    for r in range(5):
-      if boo == 3: boo = 1
-      if boo == 1: d = {1:red, 2:green}
-      elif boo == 2: d = {1:green, 2:red}
-      n = 1
-      for x in t:
-        if n > len(d): n = 1
-        x.turnon(d[n])
-        n += 1
-      boo += 1
-      time.sleep(.5)
 
   def christmasfade(self):
     self.turnoff()
@@ -676,16 +425,32 @@ class System():
       time.sleep(5)
 
   def brightnessup(self):
-    global bright
-    if bright == 1: pass
-    else: bright += 0.1
-    print "Brightness ", bright*100, "%"
+    if self.bright > .95: pass
+    else: self.bright += 0.1
+    print "Brightness ", self.bright*100, "%"
 
   def brightnessdown(self):
-    global bright
-    if bright < 0.15: pass
-    else: bright -= 0.1
-    print "Brightness ", bright*100, "%"
+    if self.bright < 0.15: pass
+    else: self.bright -= 0.1
+    print "Brightness ", self.bright*100, "%"
+
+  def speeddown(self):
+    if self.delay > .95: pass
+    else: self.delay += 0.1
+    print "Delay", self.delay*100,"%"
+
+  def speedup(self):
+    if self.delay < 0.15: pass
+    else: self.delay -= 0.1
+    print "Delay", self.delay*100,"%"
+
+  def modedown(self):
+    self.modenum -= 1
+    if self.modenum < 1: self.modenum = 5
+
+  def modeup(self):
+    self.modenum += 1
+    if self.modenum > 5: self.modenum = 1
 
   def checkcodes(self, q):
     th = threading.currentThread()
@@ -701,11 +466,12 @@ class System():
 
   def run(self):
     d = {'1':self.shift,'2':self.shift,'3':self.shift,'4':self.shift,
-         '5':self.shift,'6':self.shift,'7':self.siren,'8':self.cyclecolors,
-         'Ok':self.fadeoff,'0':self.shift,'Star':self.brightnessdown,
-         'Pound':self.brightnessup}
+         '5':self.shift,'6':self.shift,'Ok':self.fadeoff,'0':self.shift,
+         'Star':self.brightnessdown,'Pound':self.brightnessup,'Left':self.speeddown,
+         'Right':self.speedup,'Up':self.modeup,'Down':self.modedown}
     d2 = {'1':red,'2':green,'3':blue,'4':orange,'5':turquoise,'6':purple,
           '0':white}
+    m = {1:self.siren,2:self.cyclecolors,3:self.valentines,4:self.fourthofjuly,5:self.christmas}
     q = Queue.Queue()
     t1 = threading.Thread(target=self.checkcodes,args=(q,))
     t1.daemon = True
@@ -717,7 +483,6 @@ class System():
           if y in d:
             try:
               t2.do_run = False
-              t2.join()
             except: pass
             if y in d2:
               t2 = threading.Thread(target=d[y],args=(d2[y],))
@@ -725,7 +490,7 @@ class System():
               t2.start()
               self.mode = d[y]
               self.args = d2[y]
-            elif y == 'Star' or y == 'Pound':
+            elif y == 'Star' or y == 'Pound' or y == 'Left' or y == 'Right':
               t3 = threading.Thread(target=d[y])
               t3.daemon = True
               t3.start()
@@ -733,6 +498,16 @@ class System():
                 t2 = threading.Thread(target=self.mode) 
               else:
                 t2 = threading.Thread(target=self.mode,args=(self.args,)) 
+              t2.daemon = True
+              t2.start()
+            elif y == 'Up':
+              self.modeup()
+              t2 = threading.Thread(target=m[self.modenum]) 
+              t2.daemon = True
+              t2.start()
+            elif y == 'Down':
+              self.modedown()
+              t2 = threading.Thread(target=m[self.modenum]) 
               t2.daemon = True
               t2.start()
             else:
@@ -743,6 +518,7 @@ class System():
               self.args = 'None'
         time.sleep(.1)
       except KeyboardInterrupt:
+        print "\nYou pressed Ctrl+C or somethin fucked up"
         break
     try:
       t1.do_run = False
@@ -753,9 +529,6 @@ class System():
 
 if __name__=="__main__":
   sys = System()
-  try:
-    sys.run()
-  except KeyboardInterrupt:
-    sys.turnoff()
-    print "\nOH SHIT"
+  sys.run()
+  sys.turnoff()
   print "Done"
