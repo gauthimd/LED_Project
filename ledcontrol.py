@@ -386,7 +386,14 @@ class System():
     except: pass
 
 if __name__=="__main__":
-  sys = System()
-  sys.run()
+  sys = System() #create object
+  sys.turnon(green) #blink green twice to show ready
+  time.sleep(.5)
   sys.turnoff()
+  time.sleep(.5)
+  sys.turnon(green)
+  time.sleep(.5)
+  sys.turnoff()
+  sys.run() #start main program
+  sys.turnoff() #turn shit off
   print "Done"
