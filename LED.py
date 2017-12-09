@@ -53,38 +53,6 @@ class LED():
     self.greenpwm = 0
     self.bluepwm = 0
 
-  def fadeonoff(self, color):
-    limit = max(color.redpwm, color.greenpwm, color.bluepwm)
-    for i in range(limit/10):
-      if 10*i <= color.redpwm:
-        pwm.set_pwm(self.redpin, 0, 10*i)
-      else: pwm.set_pwm(self.redpin, 0, color.redpwm)
-      if 10*i <= color.greenpwm:
-        pwm.set_pwm(self.greenpin, 0, 10*i)
-      else: pwm.set_pwm(self.greenpin, 0, color.greenpwm)
-      if 10*i <= color.bluepwm:
-        pwm.set_pwm(self.bluepin, 0, 10*i)
-      else: pwm.set_pwm(self.bluepin, 0, color.bluepwm)
-    self.redpwm = color.redpwm
-    self.greenpwm = color.greenpwm
-    self.bluepwm = color.bluepwm
-    for i in range(limit/10):
-      if 10*i <= color.redpwm:
-        pwm.set_pwm(self.redpin, 0, color.redpwm - 10*i)
-      else: pwm.set_pwm(self.redpin, 0, 0)
-      if 10*i <= color.greenpwm:
-        pwm.set_pwm(self.greenpin, 0, color.greenpwm - 10*i)
-      else: pwm.set_pwm(self.greenpin, 0, 0)
-      if 10*i <= color.bluepwm:
-        pwm.set_pwm(self.bluepin, 0, color.bluepwm - 10*i)
-      else: pwm.set_pwm(self.bluepin, 0, 0)
-    pwm.set_pwm(self.redpin, 0, 0)
-    pwm.set_pwm(self.greenpin, 0, 0)
-    pwm.set_pwm(self.bluepin, 0, 0)
-    self.redpwm = 0
-    self.greenpwm = 0
-    self.bluepwm = 0
-
   def shift(self, tocolor):
     maxdiff = max(abs(self.redpwm - tocolor.redpwm), abs(self.greenpwm - tocolor.greenpwm), abs(self.bluepwm - tocolor.bluepwm))
     reddiff = abs(self.redpwm - tocolor.redpwm)
@@ -118,48 +86,3 @@ class LED():
     self.redpwm = tocolor.redpwm
     self.greenpwm = tocolor.greenpwm
     self.bluepwm = tocolor.bluepwm
-
-  def randcolor(self):
-    x = Color(random.randint(0,255),random.randint(0,255),random.randint(0,255))
-    return x
-
-  def randcoolcolor(self):
-    x = Color(0,random.randint(0,255),random.randint(0,255))
-    return x
-
-  def randwarmcolor(self):
-    x = Color(random.randint(55,255),random.randint(0,225),0)
-    return x
-
-  def randshifter(self):
-    i = self.randcolor()
-    j = self.randcolor()
-    self.fadeon(i)
-    time.sleep(2)
-    for x in range(10):
-      self.shift(i,j)
-      time.sleep(1)
-      i = j
-      j = self.randcoolcolor()
-    self.fadeoff(i)
-
-  def randcoolshifter(self):
-    i = self.randcoolcolor()
-    j = self.randcoolcolor()
-    self.fadeon(i)
-    time.sleep(2)
-    for x in range(5):
-      self.shift(i,j)
-      time.sleep(random.randint(1,5))
-      i = j
-      j = self.randcoolcolor()
-    self.fadeoff(i)
-  
-  def fireplace(self):
-    for x in range(100):
-      i = self.randwarmcolor()
-      self.turnoff()
-      self.turnon(i)
-      time.sleep(.025)
-    self.turnoff()
-
