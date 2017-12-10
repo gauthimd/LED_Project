@@ -29,7 +29,7 @@ t = [led1, led2, led3] #list used to cycle through for modes
 class System():
 
   def __init__(self):
-      self.bright = .5
+      self.bright = 1
       self.delay = .5
       self.mode = 'Ok'
       self.modenum = 0
