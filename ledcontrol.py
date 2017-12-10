@@ -328,12 +328,12 @@ class System():
     th = threading.currentThread()
     while getattr(th, "do_run", True):
       try:
-        with open('input.json') as infile:
+        with open('/home/pi/LED_Project/input.json') as infile:
           data = json.load(infile)
-        if data.get("color"):
-          y = data["color"]
+        if data.get("input"):
+          y = data["input"]
           q.put(y)
-          os.remove('input.json')
+          os.remove('/home/pi/LED_Project/input.json')
           time.sleep(.1)
       except KeyboardInterrupt: break
 
