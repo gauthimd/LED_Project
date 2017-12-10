@@ -305,7 +305,7 @@ class System():
     self.turnoff()
 
   def randomasync(self):
-    self.mode = self.randoamsync
+    self.mode = self.randomasync
     self.args = 'None'
     th = threading.currentThread()
     then = time.time() + 5
@@ -314,14 +314,14 @@ class System():
     y = random.randint(1,7)
     z = random.randint(1,7)
     self.turnoff()
-    self.turnof3separate(d[x],d[y],d[z])
+    self.turnon3separate(d[x],d[y],d[z])
     while getattr(th, "do_run", True):
       now = time.time()
       if now > then:
         x = random.randint(1,7)
         y = random.randint(1,7)
         z = random.randint(1,7)
-        self.turnof3separate(d[x],d[y],d[z])
+        self.turnon3separate(d[x],d[y],d[z])
         then = now + random.randint(5,30)
       else:
         time.sleep(.001)
