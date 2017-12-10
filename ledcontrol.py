@@ -314,33 +314,41 @@ class System():
 
   def checkcodes(self, q):
     th = threading.currentThread()
+    now = time.time()
+    then = now + .1
     while getattr(th, "do_run", True):
+      now = time.time()
       try:
-        x = lirc.nextcode()
-        y = ""
-        for n in x:
-          y = x[0].encode('utf-8')
-        q.put(y)
-        time.sleep(.1)
+        if now > then:
+          x = lirc.nextcode()
+          y = ""
+          for n in x:
+            y = x[0].encode('utf-8')
+          q.put(y)
+          then = now + .1
       except KeyboardInterrupt: break
 
   def checkcodes2(self, q):
     th = threading.currentThread()
+    now = time.time()
+    then = now + .1
     while getattr(th, "do_run", True):
+      now = time.time()
       try:
-        if os.path.exists('/home/pi/LED_Project/input.json'):
-          with open('/home/pi/LED_Project/input.json') as infile:
-            print infile.read
-            data = json.load(infile)
-            print data
-          if data.get("input"):
-            y = data["input"]
-            y = y.encode('utf-8')
-            q.put(y)
-            print "added to q", y
-            os.remove('/home/pi/LED_Project/input.json')
-            print "removed"
-            time.sleep(.3)
+        if now > then:
+          if os.path.exists('/home/pi/LED_Project/input.json'):
+            with open('/home/pi/LED_Project/input.json') as infile:
+              print infile.read
+              data = json.load(infile)
+              print data
+            if data.get("input"):
+              y = data["input"]
+              y = y.encode('utf-8')
+              q.put(y)
+              print "added to q", y
+              os.remove('/home/pi/LED_Project/input.json')
+              print "removed"
+          then = now + .1
       except KeyboardInterrupt: pass 
 
   def run(self):
