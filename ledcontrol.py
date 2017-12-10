@@ -328,14 +328,20 @@ class System():
     th = threading.currentThread()
     while getattr(th, "do_run", True):
       try:
-        with open('/home/pi/LED_Project/input.json') as infile:
-          data = json.load(infile)
-        if data.get("input"):
-          y = data["input"]
-          q.put(y)
-          os.remove('/home/pi/LED_Project/input.json')
-          time.sleep(.1)
-      except KeyboardInterrupt: break
+        if os.path.exists('/home/pi/LED_Project/input.json'):
+          with open('/home/pi/LED_Project/input.json') as infile:
+            print infile.read
+            data = json.load(infile)
+            print data
+          if data.get("input"):
+            y = data["input"]
+            y = y.encode('utf-8')
+            q.put(y)
+            print "added to q", y
+            os.remove('/home/pi/LED_Project/input.json')
+            print "removed"
+            time.sleep(.3)
+      except KeyboardInterrupt: pass 
 
   def run(self):
     d = {'1':self.shift,'2':self.shift,'3':self.shift,'4':self.shift,
@@ -369,9 +375,10 @@ class System():
               self.mode = d[y]
               self.args = d2[y]
             elif y == 'Star' or y == 'Pound' or y == 'Left' or y == 'Right':
-              t3 = threading.Thread(target=d[y])
-              t3.daemon = True
-              t3.start()
+              if y == 'Star': self.brightnessdown()
+              if y == 'Pound': self.brightnessup()
+              if y == 'Left': self.speeddown()
+              if y == 'Right': self.speedup()
               if self.args == 'None':
                 t2 = threading.Thread(target=self.mode) 
               else:
