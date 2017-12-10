@@ -145,7 +145,7 @@ class System():
   def siren(self):
     self.mode = self.siren
     self.args = 'None'
-    delay = .528*self.delay-.028 #puts delay btwn .025sec and 2 sec
+    delay = 1.85*self.delay+.15 #puts delay btwn .33sec and 2 sec
     initim = time.time()
     then = initim + delay
     colors = {1:red,2:blue}
