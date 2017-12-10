@@ -278,6 +278,29 @@ class System():
         time.sleep(.001)
     self.turnoff()
 
+  def randomasync(self):
+    self.mode = self.randoamsync
+    self.args = 'None'
+    th = threading.currentThread()
+    then = time.time() + 5
+    d = {1:red,2:green,3:blue,4:turquoise,5:purple,6:orange,7:white}
+    x = random.randint(1,7)
+    y = random.randint(1,7)
+    z = random.randint(1,7)
+    self.turnoff()
+    self.turnof3separate(d[x],d[y],d[z])
+    while getattr(th, "do_run", True):
+      now = time.time()
+      if now > then:
+        x = random.randint(1,7)
+        y = random.randint(1,7)
+        z = random.randint(1,7)
+        self.turnof3separate(d[x],d[y],d[z])
+        then = now + random.randint(5,30)
+      else:
+        time.sleep(.001)
+    self.turnoff()
+
   def randcolor(self):
     x = Color(random.randint(0,255),random.randint(0,255),random.randint(0,255))
     return x
@@ -304,11 +327,11 @@ class System():
 
   def modedown(self):
     self.modenum -= 1
-    if self.modenum < 1: self.modenum = 6
+    if self.modenum < 1: self.modenum = 7
 
   def modeup(self):
     self.modenum += 1
-    if self.modenum > 6: self.modenum = 1
+    if self.modenum > 7: self.modenum = 1
 
   def checkcodes(self, q):
     th = threading.currentThread()
@@ -329,7 +352,8 @@ class System():
          'Right':self.speedup,'Up':self.modeup,'Down':self.modedown}
     d2 = {'1':red,'2':green,'3':blue,'4':orange,'5':turquoise,'6':purple,
           '0':white}
-    m = {1:self.siren,2:self.cyclecolors,3:self.valentines,4:self.fourthofjuly,5:self.christmas,6:self.randomsync}
+    m = {1:self.siren,2:self.cyclecolors,3:self.valentines,4:self.fourthofjuly,5:self.christmas,
+         6:self.randomsync,7:self.randomasync}
     q = Queue.Queue()
     t1 = threading.Thread(target=self.checkcodes,args=(q,))
     t1.daemon = True
@@ -388,11 +412,11 @@ class System():
 if __name__=="__main__":
   sys = System() #create object
   sys.turnon(green) #blink green twice to show ready
-  time.sleep(.5)
+  time.sleep(.25)
   sys.turnoff()
-  time.sleep(.5)
+  time.sleep(.25)
   sys.turnon(green)
-  time.sleep(.5)
+  time.sleep(.25)
   sys.turnoff()
   sys.run() #start main program
   sys.turnoff() #turn shit off
