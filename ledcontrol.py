@@ -239,54 +239,6 @@ class System():
       else: time.sleep(.001)
     self.turnoff()
 
-  def fourthofjuly(self):
-    self.mode = self.fourthofjuly
-    self.args = 'None'
-    th = threading.currentThread()
-    d = {0:red,1:white,2:blue}
-    x = 0
-    y = 1
-    z = 2
-    initim = time.time()
-    then = initim + self.delay
-    self.turnoff()
-    while getattr(th, "do_run", True):
-      now = time.time()
-      if now > then:
-          self.turnon3separate(d[x],d[y],d[z])
-          x += 1
-          if x >= len(d): x = 0
-          y += 1
-          if y >= len(d): y = 0
-          z += 1
-          if z >= len(d): z = 0
-          then = now + self.delay
-      else: time.sleep(.001)
-    self.turnoff()
-
-  def christmas(self):
-    self.mode = self.christmas
-    self.args = 'None'
-    th = threading.currentThread()
-    n = 0
-    initim = time.time()
-    then = initim + self.delay
-    self.turnoff()
-    while getattr(th, "do_run", True):
-      now = time.time()
-      if now > then:
-        if n == 0:
-          self.turnon3separate(red,green,white)
-        if n == 1:
-          self.turnon3separate(green,white,red)
-        if n == 2:
-          self.turnon3separate(white,red,green)
-        n += 1
-        if n > 2: n = 0
-        then = now + self.delay
-      else: time.sleep(.001)
-    self.turnoff()
-
   def randomsync(self):
     self.mode = self.randomsync
     self.args = 'None'
@@ -392,9 +344,9 @@ class System():
          'Right':self.speedup,'Up':self.modeup,'Down':self.modedown}
     d2 = {'1':red,'2':green,'3':blue,'4':orange,'5':turquoise,'6':purple,
           '0':white}
-    m = {1:self.siren,2:self.cyclecolors,3:self.valentines,4:self.fourthofjuly,5:self.christmas,
-         6:self.randomsync,7:self.randomasync,8:self.holidays,9:self.holidays}
-    m2 = {8:{0:red,1:white,2:blue},9:{0:red,1:green,2:white}}
+    m = {1:self.siren,2:self.cyclecolors,3:self.valentines,4:self.holidays,5:self.holidays,
+         6:self.randomsync,7:self.randomasync}
+    m2 = {4:{0:red,1:white,2:blue},5:{0:red,1:green,2:white}}
     q = Queue.Queue()
     t1 = threading.Thread(target=self.checkcodes,args=(q,))
     t1.daemon = True
