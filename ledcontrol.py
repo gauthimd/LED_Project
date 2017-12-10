@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import Adafruit_PCA9685  #module for PWM driver board
-import time, random, lirc, threading, Queue
+import time, random, lirc, threading, Queue, json
 from colors import Color
 from LED import LED
 
@@ -44,7 +44,7 @@ class System():
       x.greenpwm = int(color.greenpwm*self.bright)
       x.bluepwm = int(color.bluepwm*self.bright)
 
-  def turnon3separate(self, color1, color2, color3): # i MUST BE 0,1, or 2 !!!!!!
+  def turnon3separate(self, color1, color2, color3): 
       pwm.set_pwm(t[0].redpin, 0, int(color1.redpwm*self.bright))
       pwm.set_pwm(t[0].greenpin, 0, int(color1.greenpwm*self.bright))
       pwm.set_pwm(t[0].bluepin, 0, int(color1.bluepwm*self.bright))
@@ -185,8 +185,8 @@ class System():
   def valentines(self):
     self.mode = self.valentines
     self.args = 'None'
-    ldelay = 1
-    sdelay = .05
+    ldelay = 1.25
+    sdelay = .15
     n = 1
     th = threading.currentThread()
     initim = time.time()
@@ -214,26 +214,52 @@ class System():
       else: time.sleep(.001)
     self.turnoff()
 
-  def fourthofjuly(self):
-    self.mode = self.fourthofjuly
-    self.args = 'None'
+  def holidays(self, d):
+    self.mode = self.holidays
+    self.args = d
     th = threading.currentThread()
-    n = 0
+    x = 0
+    y = 1
+    z = 2
     initim = time.time()
     then = initim + self.delay
     self.turnoff()
     while getattr(th, "do_run", True):
       now = time.time()
       if now > then:
-        if n == 0:
-          self.turnon3separate(red,white,blue)
-        if n == 1:
-          self.turnon3separate(white,blue,red)
-        if n == 2:
-          self.turnon3separate(blue,red,white)
-        n += 1
-        if n > 2: n = 0
-        then = now + self.delay
+          self.turnon3separate(d[x],d[y],d[z])
+          x += 1
+          if x >= len(d): x = 0
+          y += 1
+          if y >= len(d): y = 0
+          z += 1
+          if z >= len(d): z = 0
+          then = now + self.delay
+      else: time.sleep(.001)
+    self.turnoff()
+
+  def fourthofjuly(self):
+    self.mode = self.fourthofjuly
+    self.args = 'None'
+    th = threading.currentThread()
+    d = {0:red,1:white,2:blue}
+    x = 0
+    y = 1
+    z = 2
+    initim = time.time()
+    then = initim + self.delay
+    self.turnoff()
+    while getattr(th, "do_run", True):
+      now = time.time()
+      if now > then:
+          self.turnon3separate(d[x],d[y],d[z])
+          x += 1
+          if x >= len(d): x = 0
+          y += 1
+          if y >= len(d): y = 0
+          z += 1
+          if z >= len(d): z = 0
+          then = now + self.delay
       else: time.sleep(.001)
     self.turnoff()
 
@@ -325,13 +351,13 @@ class System():
     else: self.delay -= 0.1
     print "Delay", self.delay*100,"%"
 
-  def modedown(self):
+  def modedown(self, m):
     self.modenum -= 1
-    if self.modenum < 1: self.modenum = 7
+    if self.modenum < 1: self.modenum = len(m)
 
-  def modeup(self):
+  def modeup(self, m):
     self.modenum += 1
-    if self.modenum > 7: self.modenum = 1
+    if self.modenum > len(m): self.modenum = 1
 
   def checkcodes(self, q):
     th = threading.currentThread()
@@ -345,6 +371,19 @@ class System():
         time.sleep(.1)
       except KeyboardInterrupt: break
 
+  def checkcodes2(self, q):
+    th = threading.currentThread()
+    while getattr(th, "do_run", True):
+      try:
+        with open('input.json') as infile:
+          data = json.load(infile)
+        if data.get("color"):
+          y = data["color"]
+          q.put(y)
+          os.remove('input.json')
+          time.sleep(.1)
+      except KeyboardInterrupt: break
+
   def run(self):
     d = {'1':self.shift,'2':self.shift,'3':self.shift,'4':self.shift,
          '5':self.shift,'6':self.shift,'Ok':self.fadeoff,'0':self.shift,
@@ -353,11 +392,15 @@ class System():
     d2 = {'1':red,'2':green,'3':blue,'4':orange,'5':turquoise,'6':purple,
           '0':white}
     m = {1:self.siren,2:self.cyclecolors,3:self.valentines,4:self.fourthofjuly,5:self.christmas,
-         6:self.randomsync,7:self.randomasync}
+         6:self.randomsync,7:self.randomasync,8:self.holidays,9:self.holidays}
+    m2 = {8:{0:red,1:white,2:blue},9:{0:red,1:green,2:white}}
     q = Queue.Queue()
     t1 = threading.Thread(target=self.checkcodes,args=(q,))
     t1.daemon = True
     t1.start()
+    t3 = threading.Thread(target=self.checkcodes2,args=(q,))
+    t3.daemon = True
+    t3.start()
     while True:
       try:
         y = q.get()
@@ -383,12 +426,15 @@ class System():
               t2.daemon = True
               t2.start()
             elif y == 'Up':
-              self.modeup()
-              t2 = threading.Thread(target=m[self.modenum]) 
+              self.modeup(m)
+	      if self.modenum in m2:
+                t2 = threading.Thread(target=m[self.modenum],args=m2[self.modenum]) 
+              else:
+                t2 = threading.Thread(target=m[self.modenum]) 
               t2.daemon = True
               t2.start()
             elif y == 'Down':
-              self.modedown()
+              self.modedown(m)
               t2 = threading.Thread(target=m[self.modenum]) 
               t2.daemon = True
               t2.start()
@@ -407,6 +453,8 @@ class System():
       t1.join()
       t2.do_run = False
       t2.join()
+      t3.do_run = False
+      t3.join()
     except: pass
 
 if __name__=="__main__":
