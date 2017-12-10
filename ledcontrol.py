@@ -224,6 +224,7 @@ class System():
     initim = time.time()
     then = initim + self.delay
     self.turnoff()
+    self.turnon3separate(d[x],d[y],d[z])
     while getattr(th, "do_run", True):
       now = time.time()
       if now > then:
@@ -435,7 +436,10 @@ class System():
               t2.start()
             elif y == 'Down':
               self.modedown(m)
-              t2 = threading.Thread(target=m[self.modenum]) 
+              if self.modenum in m2:
+                t2 = threading.Thread(target=m[self.modenum],args=m2[self.modenum])
+              else:
+                t2 = threading.Thread(target=m[self.modenum]) 
               t2.daemon = True
               t2.start()
             else:
