@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import Adafruit_PCA9685  #module for PWM driver board
-import time, random, lirc, threading, Queue, json
+import time, random, lirc, threading, Queue, json, os, sys
 from colors import Color
 from LED import LED
 
@@ -429,7 +429,7 @@ class System():
             elif y == 'Up':
               self.modeup(m)
 	      if self.modenum in m2:
-                t2 = threading.Thread(target=m[self.modenum],args=m2[self.modenum]) 
+                t2 = threading.Thread(target=m[self.modenum],args=(m2[self.modenum],)) 
               else:
                 t2 = threading.Thread(target=m[self.modenum]) 
               t2.daemon = True
@@ -437,7 +437,7 @@ class System():
             elif y == 'Down':
               self.modedown(m)
               if self.modenum in m2:
-                t2 = threading.Thread(target=m[self.modenum],args=m2[self.modenum])
+                t2 = threading.Thread(target=m[self.modenum],args=(m2[self.modenum],))
               else:
                 t2 = threading.Thread(target=m[self.modenum]) 
               t2.daemon = True
