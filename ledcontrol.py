@@ -224,11 +224,11 @@ class System():
     initim = time.time()
     then = initim + self.delay
     self.turnoff()
-    self.turnon3separate(d[x],d[y],d[z])
+    self.turnon3separate(d[y],d[x],d[z])
     while getattr(th, "do_run", True):
       now = time.time()
       if now > then:
-          self.turnon3separate(d[x],d[y],d[z])
+          self.turnon3separate(d[y],d[x],d[z])
           x += 1
           if x >= len(d): x = 0
           y += 1
@@ -244,13 +244,13 @@ class System():
     self.args = 'None'
     th = threading.currentThread()
     then = time.time() + 5
-    d = {1:red,2:green,3:blue,4:turquoise,5:purple,6:orange,7:white}
-    y = random.randint(1,7)
+    d = {1:red,2:green,3:blue,4:turquoise,5:purple,6:orange,7:yellow,8:white}
+    y = random.randint(1,8)
     self.shift(d[y])
     while getattr(th, "do_run", True):
       now = time.time()
       if now > then:
-        y = random.randint(1,7)
+        y = random.randint(1,8)
         self.shift(d[y])
         then = now + random.randint(5,30)
       else:
@@ -262,18 +262,18 @@ class System():
     self.args = 'None'
     th = threading.currentThread()
     then = time.time() + 5
-    d = {1:red,2:green,3:blue,4:turquoise,5:purple,6:orange,7:white}
-    x = random.randint(1,7)
-    y = random.randint(1,7)
-    z = random.randint(1,7)
+    d = {1:red,2:green,3:blue,4:turquoise,5:purple,6:orange,7:yellow,8:white}
+    x = random.randint(1,8)
+    y = random.randint(1,8)
+    z = random.randint(1,8)
     self.turnoff()
     self.turnon3separate(d[x],d[y],d[z])
     while getattr(th, "do_run", True):
       now = time.time()
       if now > then:
-        x = random.randint(1,7)
-        y = random.randint(1,7)
-        z = random.randint(1,7)
+        x = random.randint(1,8)
+        y = random.randint(1,8)
+        z = random.randint(1,8)
         self.turnon3separate(d[x],d[y],d[z])
         then = now + random.randint(5,30)
       else:
