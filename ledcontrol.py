@@ -345,14 +345,15 @@ class System():
 
   def run(self):
     d = {'1':self.shift,'2':self.shift,'3':self.shift,'4':self.shift,
-         '5':self.shift,'6':self.shift,'Ok':self.fadeoff,'0':self.shift,
-         'Star':self.brightnessdown,'Pound':self.brightnessup,'Left':self.speeddown,
+         '5':self.shift,'6':self.shift,'7':self.shift,
+         'Ok':self.fadeoff,'0':self.shift,'Star':self.brightnessdown,
+         'Pound':self.brightnessup,'Left':self.speeddown,
          'Right':self.speedup,'Up':self.modeup,'Down':self.modedown}
     d2 = {'1':red,'2':green,'3':blue,'4':orange,'5':turquoise,'6':purple,
-          '0':white}
+          '7':yellow,'0':white}
     m = {1:self.siren,2:self.cyclecolors,3:self.valentines,4:self.holidays,5:self.holidays,
-         6:self.randomsync,7:self.randomasync}
-    m2 = {4:{0:red,1:white,2:blue},5:{0:red,1:green,2:white}}
+         6:self.randomsync,7:self.randomasync,8:self.holidays}
+    m2 = {4:{0:red,1:white,2:blue},5:{0:red,1:green,2:white},8:{0:red,1:orange,2:yellow,3:green,4:turquoise,5:blue,6:purple,7:white}}
     q = Queue.Queue()
     t1 = threading.Thread(target=self.checkcodes,args=(q,))
     t1.daemon = True
