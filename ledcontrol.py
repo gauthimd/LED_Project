@@ -2,13 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import Adafruit_PCA9685  #module for PWM driver board
-import time, random, lirc, threading, Queue, json, os, sys
+import time, random, threading, Queue, json, os, sys
 from colors import Color
 from LED import LED
 
 pwm = Adafruit_PCA9685.PCA9685() #init for PWM driver
 pwm.set_pwm_freq(200)
-sockid = lirc.init("myprog", blocking=False) #init for LIRC socket
 
 red = Color(255,0,0) #instantiate color objects from colors.py
 green = Color(0,255,0)
@@ -224,11 +223,11 @@ class System():
     initim = time.time()
     then = initim + self.delay
     self.turnoff()
-    self.turnon3separate(d[y],d[x],d[z])
+    self.turnon3separate(d[x],d[y],d[z])
     while getattr(th, "do_run", True):
       now = time.time()
       if now > then:
-          self.turnon3separate(d[y],d[x],d[z])
+          self.turnon3separate(d[x],d[y],d[z])
           x += 1
           if x >= len(d): x = 0
           y += 1
@@ -316,30 +315,14 @@ class System():
     th = threading.currentThread()
     while getattr(th, "do_run", True):
       try:
-        x = lirc.nextcode()
-        y = ""
-        for n in x:
-          y = x[0].encode('utf-8')
-        q.put(y)
-        time.sleep(.1)
-      except KeyboardInterrupt: break
-
-  def checkcodes2(self, q):
-    th = threading.currentThread()
-    while getattr(th, "do_run", True):
-      try:
         if os.path.exists('/home/pi/LED_Project/input.json'):
           with open('/home/pi/LED_Project/input.json') as infile:
-            print infile.read
             data = json.load(infile)
-            print data
           if data.get("input"):
             y = data["input"]
             y = y.encode('utf-8')
             q.put(y)
-            print "added to q", y
             os.remove('/home/pi/LED_Project/input.json')
-            print "removed"
         time.sleep(.1)
       except KeyboardInterrupt: pass 
 
@@ -358,9 +341,6 @@ class System():
     t1 = threading.Thread(target=self.checkcodes,args=(q,))
     t1.daemon = True
     t1.start()
-    t3 = threading.Thread(target=self.checkcodes2,args=(q,))
-    t3.daemon = True
-    t3.start()
     while True:
       try:
         y = q.get()
@@ -417,8 +397,6 @@ class System():
       t1.join()
       t2.do_run = False
       t2.join()
-      t3.do_run = False
-      t3.join()
     except: pass
 
 if __name__=="__main__":
