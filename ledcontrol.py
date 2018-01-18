@@ -34,43 +34,42 @@ class System():
       self.modenum = 0
       self.args = None
 
-  def turnon(self, color):
-    for x in t:
-      pwm.set_pwm(x.redpin, 0, int(color.redpwm*self.bright))
-      pwm.set_pwm(x.greenpin, 0, int(color.greenpwm*self.bright))
-      pwm.set_pwm(x.bluepin, 0, int(color.bluepwm*self.bright))
-      x.redpwm = int(color.redpwm*self.bright)
-      x.greenpwm = int(color.greenpwm*self.bright)
-      x.bluepwm = int(color.bluepwm*self.bright)
+  def writestatusJSON(self):
+      update = {"bright": self.bright, "delay": self.delay, "mode": self.mode, "modenum": self.modenum, "args": self.args}
+      with open('status.json', 'w') as outfile:
+          json.dump(update, outfile)
+      outfile.close()
+      
 
-  def turnon3separate(self, color1, color2, color3): 
-      pwm.set_pwm(t[0].redpin, 0, int(color1.redpwm*self.bright))
-      pwm.set_pwm(t[0].greenpin, 0, int(color1.greenpwm*self.bright))
-      pwm.set_pwm(t[0].bluepin, 0, int(color1.bluepwm*self.bright))
-      t[0].redpwm = int(color1.redpwm*self.bright)
-      t[0].greenpwm = int(color1.greenpwm*self.bright)
-      t[0].bluepwm = int(color1.bluepwm*self.bright)
-      pwm.set_pwm(t[1].redpin, 0, int(color2.redpwm*self.bright))
-      pwm.set_pwm(t[1].greenpin, 0, int(color2.greenpwm*self.bright))
-      pwm.set_pwm(t[1].bluepin, 0, int(color2.bluepwm*self.bright))
-      t[1].redpwm = int(color2.redpwm*self.bright)
-      t[1].greenpwm = int(color2.greenpwm*self.bright)
-      t[1].bluepwm = int(color2.bluepwm*self.bright)
-      pwm.set_pwm(t[2].redpin, 0, int(color3.redpwm*self.bright))
-      pwm.set_pwm(t[2].greenpin, 0, int(color3.greenpwm*self.bright))
-      pwm.set_pwm(t[2].bluepin, 0, int(color3.bluepwm*self.bright))
-      t[2].redpwm = int(color3.redpwm*self.bright)
-      t[2].greenpwm = int(color3.greenpwm*self.bright)
-      t[2].bluepwm = int(color3.bluepwm*self.bright)
+  def turnon(self, color):
+      for x in t:
+          pwm.set_pwm(x.redpin, 0, int(color.redpwm*self.bright))
+          pwm.set_pwm(x.greenpin, 0, int(color.greenpwm*self.bright))
+          pwm.set_pwm(x.bluepin, 0, int(color.bluepwm*self.bright))
+          x.redpwm = int(color.redpwm*self.bright)
+          x.greenpwm = int(color.greenpwm*self.bright)
+          x.bluepwm = int(color.bluepwm*self.bright)
+
+  def turnon3separate(self, colors): # colors must be of type list []
+      y = 0
+      for x in t:
+          pwm.set_pwm(x.redpin, 0, int(colors[y].redpwm*self.bright))
+          pwm.set_pwm(x.greenpin, 0, int(colors[y].greenpwm*self.bright))
+          pwm.set_pwm(x.bluepin, 0, int(colors[y].bluepwm*self.bright))
+          x.redpwm = int(colors[y].redpwm*self.bright)
+          x.greenpwm = int(colors[y].greenpwm*self.bright)
+          x.bluepwm = int(colors[y].bluepwm*self.bright)
+          y += 1
+          if y >= len(colors)
 
   def turnoff(self):
-    for x in t:
-      pwm.set_pwm(x.redpin, 0, 0)
-      pwm.set_pwm(x.greenpin, 0, 0)
-      pwm.set_pwm(x.bluepin, 0, 0)
-      x.redpwm = 0
-      x.greenpwm = 0
-      x.bluepwm = 0
+      for x in t:
+          pwm.set_pwm(x.redpin, 0, 0)
+          pwm.set_pwm(x.greenpin, 0, 0)
+          pwm.set_pwm(x.bluepin, 0, 0)
+          x.redpwm = 0
+          x.greenpwm = 0
+          x.bluepwm = 0
 
   def fadeoff(self):
     u = []
@@ -101,7 +100,7 @@ class System():
       x.greenpwm = 0
       x.bluepwm = 0
 
-  def shift3separate(self, tocolors):
+  def shift3separate(self, tocolors):  #tocolors must be of type list []
     u = []
     y = 0
     for x in t:
@@ -291,7 +290,8 @@ class System():
     self.mode = self.randomsync
     self.args = 'None'
     th = threading.currentThread()
-    then = time.time() + 5
+    delay = 5*self.delay + 0.1
+    then = time.time() + delay
     d = {1:red,2:green,3:blue,4:turquoise,5:purple,6:orange,7:yellow,8:white}
     y = random.randint(1,8)
     self.shift(d[y])
@@ -300,7 +300,7 @@ class System():
       if now > then:
         y = random.randint(1,8)
         self.shift(d[y])
-        then = now + random.randint(5,30)
+        then = now + delay
       else:
         time.sleep(.001)
     self.turnoff()
@@ -309,7 +309,8 @@ class System():
     self.mode = self.randomasync
     self.args = 'None'
     th = threading.currentThread()
-    then = time.time() + 5
+    delay = 5*self.delay + 0.1
+    then = time.time() + delay
     d = {1:red,2:green,3:blue,4:turquoise,5:purple,6:orange,7:yellow,8:white}
     x = random.randint(1,8)
     y = random.randint(1,8)
@@ -323,7 +324,7 @@ class System():
         y = random.randint(1,8)
         z = random.randint(1,8)
         self.turnon3separate(d[x],d[y],d[z])
-        then = now + random.randint(5,30)
+        then = now + delay
       else:
         time.sleep(.001)
     self.turnoff()
@@ -464,6 +465,12 @@ if __name__=="__main__":
   sys.shift3separate([green,blue,red])
   time.sleep(3)
   sys.shift3separate([blue,red,green])
+  time.sleep(3)
+  sys.turnon3separate([red,green,blue])
+  time.sleep(3)
+  sys.turnon3separate([green,blue,red])
+  time.sleep(3)
+  sys.turnon3separate([blue,red,green])
   time.sleep(3)
 #  sys.run() #start main program
   sys.turnoff() #turn shit off
