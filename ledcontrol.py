@@ -271,11 +271,11 @@ class System():
     initim = time.time()
     then = initim + self.delay
     self.turnoff()
-    self.turnon3separate(d[x],d[y],d[z])
+    self.turnon3separate([d[x],d[y],d[z]])
     while getattr(th, "do_run", True):
       now = time.time()
       if now > then:
-          self.turnon3separate(d[x],d[y],d[z])
+          self.turnon3separate([d[x],d[y],d[z]])
           x += 1
           if x >= len(d): x = 0
           y += 1
@@ -316,14 +316,14 @@ class System():
     y = random.randint(1,8)
     z = random.randint(1,8)
     self.turnoff()
-    self.turnon3separate(d[x],d[y],d[z])
+    self.shift3separate([d[x],d[y],d[z]])
     while getattr(th, "do_run", True):
       now = time.time()
       if now > then:
         x = random.randint(1,8)
         y = random.randint(1,8)
         z = random.randint(1,8)
-        self.turnon3separate(d[x],d[y],d[z])
+        self.shift3separate([d[x],d[y],d[z]])
         then = now + delay
       else:
         time.sleep(.001)
@@ -405,6 +405,7 @@ class System():
               t2.start()
               self.mode = d[y]
               self.args = d2[y]
+	      self.writestatusJSON()
             elif y == 'Star' or y == 'Pound' or y == 'Left' or y == 'Right':
               if y == 'Star': self.brightnessdown()
               if y == 'Pound': self.brightnessup()
@@ -414,6 +415,7 @@ class System():
                 t2 = threading.Thread(target=self.mode) 
               else:
                 t2 = threading.Thread(target=self.mode,args=(self.args,)) 
+	      self.writestatusJSON()
               t2.daemon = True
               t2.start()
             elif y == 'Up':
@@ -422,6 +424,7 @@ class System():
                 t2 = threading.Thread(target=m[self.modenum],args=(m2[self.modenum],)) 
               else:
                 t2 = threading.Thread(target=m[self.modenum]) 
+	      self.writestatusJSON()
               t2.daemon = True
               t2.start()
             elif y == 'Down':
@@ -430,14 +433,16 @@ class System():
                 t2 = threading.Thread(target=m[self.modenum],args=(m2[self.modenum],))
               else:
                 t2 = threading.Thread(target=m[self.modenum]) 
+	      self.writestatusJSON()
               t2.daemon = True
               t2.start()
             else:
+              self.mode = d[y]
+              self.args = 'None'
+	      self.writestatusJSON()
               t2 = threading.Thread(target=d[y])
               t2.daemon = True
               t2.start()
-              self.mode = d[y]
-              self.args = 'None'
         time.sleep(.1)
       except KeyboardInterrupt:
         print "\nYou pressed Ctrl+C or somethin fucked up"
@@ -474,4 +479,5 @@ if __name__=="__main__":
   time.sleep(3)
 #  sys.run() #start main program
   sys.turnoff() #turn shit off
+  sys.writestatusJSON()
   print "Done"
