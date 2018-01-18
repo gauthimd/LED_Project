@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import Adafruit_PCA9685  #module for PWM driver board
-import time, random, threading, Queue, json, os, sys
+import time, random, threading, queue, json, os, sys
 from colors import Color
 from LED import LED
 
@@ -50,7 +50,7 @@ class System():
           x.greenpwm = int(color.greenpwm*self.bright)
           x.bluepwm = int(color.bluepwm*self.bright)
 
-  def turnon3separate(self, colors): # colors must be of type list []
+  def turnon3separate(self, colors): # colors must be list of colors []
       y = 0
       for x in t:
           pwm.set_pwm(x.redpin, 0, int(colors[y].redpwm*self.bright))
@@ -100,7 +100,7 @@ class System():
       x.greenpwm = 0
       x.bluepwm = 0
 
-  def shift3separate(self, tocolors):  #tocolors must be of type list []
+  def shift3separate(self, tocolors):  #tocolors must be list of colors []
     u = []
     y = 0
     for x in t:
@@ -305,6 +305,29 @@ class System():
         time.sleep(.001)
     self.turnoff()
 
+  def randomcolorasync(self):
+    self.mode = self.randomcolorasync
+    self.args = 'None'
+    th = threading.currentThread()
+    delay = 5*self.delay + 0.1
+    then = time.time() + delay
+    x = self.randcolor()
+    y = self.randcolor()
+    z = self.randcolor()
+    self.turnoff()
+    self.shift3separate([d[x],d[y],d[z]])
+    while getattr(th, "do_run", True):
+      now = time.time()
+      if now > then:
+        x = self.randcolor()
+        y = self.randcolor()
+        z = self.randcolor()
+        self.shift3separate([d[x],d[y],d[z]])
+        then = now + delay
+      else:
+        time.sleep(.001)
+    self.turnoff()
+
   def randomasync(self):
     self.mode = self.randomasync
     self.args = 'None'
@@ -336,22 +359,22 @@ class System():
   def brightnessup(self):
     if self.bright > .95: pass
     else: self.bright += 0.1
-    print "Brightness ", self.bright*100, "%"
+    print("Brightness ", self.bright*100, "%")
 
   def brightnessdown(self):
     if self.bright < 0.15: pass
     else: self.bright -= 0.1
-    print "Brightness ", self.bright*100, "%"
+    print("Brightness ", self.bright*100, "%")
 
   def speeddown(self):
     if self.delay > .95: pass
     else: self.delay += 0.1
-    print "Delay", self.delay*100,"%"
+    print("Delay", self.delay*100,"%")
 
   def speedup(self):
     if self.delay < 0.15: pass
     else: self.delay -= 0.1
-    print "Delay", self.delay*100,"%"
+    print("Delay", self.delay*100,"%")
 
   def modedown(self, m):
     self.modenum -= 1
@@ -385,7 +408,7 @@ class System():
     d2 = {'1':red,'2':green,'3':blue,'4':orange,'5':turquoise,'6':purple,
           '7':yellow,'0':white}
     m = {1:self.siren,2:self.cyclecolors,3:self.valentines,4:self.holidays,5:self.holidays,
-         6:self.randomsync,7:self.randomasync,8:self.holidays}
+         6:self.randomsync,7:self.randomasync,8:self.holidays,9:self.randomcolorasync}
     m2 = {4:{0:red,1:white,2:blue},5:{0:red,1:green,2:white},8:{0:red,1:orange,2:yellow,3:green,4:turquoise,5:blue,6:purple,7:white}}
     q = Queue.Queue()
     t1 = threading.Thread(target=self.checkcodes,args=(q,))
@@ -405,7 +428,7 @@ class System():
               t2.start()
               self.mode = d[y]
               self.args = d2[y]
-	      self.writestatusJSON()
+              self.writestatusJSON()
             elif y == 'Star' or y == 'Pound' or y == 'Left' or y == 'Right':
               if y == 'Star': self.brightnessdown()
               if y == 'Pound': self.brightnessup()
@@ -415,16 +438,16 @@ class System():
                 t2 = threading.Thread(target=self.mode) 
               else:
                 t2 = threading.Thread(target=self.mode,args=(self.args,)) 
-	      self.writestatusJSON()
+              self.writestatusJSON()
               t2.daemon = True
               t2.start()
             elif y == 'Up':
               self.modeup(m)
-	      if self.modenum in m2:
+              if self.modenum in m2:
                 t2 = threading.Thread(target=m[self.modenum],args=(m2[self.modenum],)) 
               else:
                 t2 = threading.Thread(target=m[self.modenum]) 
-	      self.writestatusJSON()
+              self.writestatusJSON()
               t2.daemon = True
               t2.start()
             elif y == 'Down':
@@ -433,19 +456,19 @@ class System():
                 t2 = threading.Thread(target=m[self.modenum],args=(m2[self.modenum],))
               else:
                 t2 = threading.Thread(target=m[self.modenum]) 
-	      self.writestatusJSON()
+              self.writestatusJSON()
               t2.daemon = True
               t2.start()
             else:
               self.mode = d[y]
               self.args = 'None'
-	      self.writestatusJSON()
+              self.writestatusJSON()
               t2 = threading.Thread(target=d[y])
               t2.daemon = True
               t2.start()
         time.sleep(.1)
       except KeyboardInterrupt:
-        print "\nYou pressed Ctrl+C or somethin fucked up"
+        print("\nYou pressed Ctrl+C or somethin fucked up")
         break
     try:
       t1.do_run = False
@@ -480,4 +503,4 @@ if __name__=="__main__":
 #  sys.run() #start main program
   sys.turnoff() #turn shit off
   sys.writestatusJSON()
-  print "Done"
+  print("Done")
