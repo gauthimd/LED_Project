@@ -60,7 +60,7 @@ class System():
           x.greenpwm = int(colors[y].greenpwm*self.bright)
           x.bluepwm = int(colors[y].bluepwm*self.bright)
           y += 1
-          if y >= len(colors)
+          if y >= len(colors): y = 0
 
   def turnoff(self):
       for x in t:
