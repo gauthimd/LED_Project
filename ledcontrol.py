@@ -101,6 +101,55 @@ class System():
       x.greenpwm = 0
       x.bluepwm = 0
 
+  def shift3separate(self, tocolors):
+    u = []
+    y = 0
+    for x in t:
+      maxdiff = max(abs(x.redpwm - tocolors[y].redpwm*self.bright), abs(x.greenpwm - tocolors[y].greenpwm*self.bright), abs(x.bluepwm - tocolors[y].bluepwm*self.bright))
+      x.reddiff = abs(x.redpwm - tocolors[y].redpwm*self.bright)
+      x.greendiff = abs(x.greenpwm - tocolors[y].greenpwm*self.bright)
+      x.bluediff = abs(x.bluepwm - tocolors[y].bluepwm*self.bright)
+      u.append(maxdiff)
+      y += 1
+      if y >= len(t): y = 0
+    maxdiff = max(u)
+    y = 0
+    for i in range(int(maxdiff/100)):
+      for x in t:
+        if 100*i <= x.reddiff:
+          if x.redpwm < tocolors[y].redpwm*self.bright:
+            pwm.set_pwm(x.redpin, 0, x.redpwm + 100*i)
+          elif x.redpwm > tocolors[y].redpwm*self.bright:
+            pwm.set_pwm(x.redpin, 0, x.redpwm - 100*i)
+        else:
+          pwm.set_pwm(x.redpin, 0, int(tocolors[y].redpwm*self.bright))
+        if 100*i <= x.greendiff:
+          if x.greenpwm < tocolors[y].greenpwm*self.bright:
+            pwm.set_pwm(x.greenpin, 0, x.greenpwm + 100*i)
+          elif x.greenpwm > tocolors[y].greenpwm*self.bright:
+            pwm.set_pwm(x.greenpin, 0, x.greenpwm - 100*i)
+        else:
+          pwm.set_pwm(x.greenpin, 0, int(tocolors[y].greenpwm*self.bright))
+        if 100*i <= x.bluediff:
+          if x.bluepwm < tocolors[y].bluepwm*self.bright:
+            pwm.set_pwm(x.bluepin, 0, x.bluepwm + 100*i)
+          elif x.bluepwm > tocolors[y].bluepwm*self.bright:
+            pwm.set_pwm(x.bluepin, 0, x.bluepwm - 100*i)
+        else:
+          pwm.set_pwm(x.bluepin, 0, int(tocolors[y].bluepwm*self.bright))
+        y += 1
+        if y >= len(t): y = 0
+    y = 0
+    for x in t:
+      pwm.set_pwm(x.redpin, 0, int(tocolors[y].redpwm*self.bright))
+      pwm.set_pwm(x.greenpin, 0, int(tocolors[y].greenpwm*self.bright))
+      pwm.set_pwm(x.bluepin, 0, int(tocolors[y].bluepwm*self.bright))
+      x.redpwm = int(tocolors[y].redpwm*self.bright)
+      x.greenpwm = int(tocolors[y].greenpwm*self.bright)
+      x.bluepwm = int(tocolors[y].bluepwm*self.bright)
+      y += 1
+      if y >= len(t): y = 0
+
   def shift(self, tocolor):
     u = []
     for x in t:
@@ -408,6 +457,14 @@ if __name__=="__main__":
   sys.turnon(green)
   time.sleep(.25)
   sys.turnoff()
-  sys.run() #start main program
+  sys.turnon(red)
+  time.sleep(1)
+  sys.shift3separate([red,green,blue])
+  time.sleep(3)
+  sys.shift3separate([green,blue,red])
+  time.sleep(3)
+  sys.shift3separate([blue,red,green])
+  time.sleep(3)
+#  sys.run() #start main program
   sys.turnoff() #turn shit off
   print "Done"
